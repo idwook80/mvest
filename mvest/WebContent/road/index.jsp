@@ -210,19 +210,26 @@ function goPage(page){
 
 <div class="container-fluid">
 	<div class="row">
-	
-		<div class="embed-responsive embed-responsive-16by9">
-		  <iframe class="embed-responsive-item" src="http://www.utic.go.kr/view/map/cctvStream.jsp?cctvid=E912518&cctvname=%255B%25EC%25A4%2591%25EB%25B6%2580%25EB%2582%25B4%25EB%25A5%2599%25EC%2584%25A0%255D%25EC%25A7%2580%25EB%258B%25B9%25EB%25A6%25AC&kind=Z3&cctvip=null&cctvch=null&id=2675/s/F5vTV%2By2NyVQhQP0hUu04zCxUyiX7P7SdWYclc0uLFHqi6zgZhSbq7FJZ%2Bag3TPPNRPUpgwTQmTlHkT1GuaQOckfS%2BKsxtsz8QK2UvnAM=&cctvpasswd=null&cctvport=null&minX=127.60050286637214&minY=37.04187022317068&maxX=127.81249206667269&maxY=37.137455950390080" allowfullscreen>
-		  </iframe>
-		</div>
-		
-		 <div class="embed-responsive embed-responsive-16by9">
+		 <div>
 		  <iframe class="embed-responsive-item" 
-		  src="http://www.utic.go.kr/view/map/cctvStream.jsp?cctvid=E912392&cctvname=%255B%25EC%25A4%2591%25EB%25B6%2580%25EB%2582%25B4%25EB%25A5%2599%25EC%2584%25A0%255D%25EB%258B%25A8%25ED%258F%2589%25EB%25A6%25AC&kind=Z3&cctvip=null&cctvch=null&id=732/Dt4%2BnsOc8KejZHL6Y3rKEaAKJ%2BtK16qgzPJmL1jp1A/2MYvd9PkHppBxcjHlyHwv9jQ96ywwxtA2Or8U93d9E74G9sJERoWmkdy2q5RRIAc=&cctvpasswd=null&cctvport=null&minX=127.62353212525876&minY=37.10814020668914&maxX=127.73457166841132&maxY=37.160955694107635" 
+		  src="http://www.utic.go.kr/view/map/cctvStream.jsp?cctvid=E912658&cctvname=%255B%25EC%25A4%2591%25EB%25B6%2580%25EB%2582%25B4%25EB%25A5%2599%25EC%2584%25A0%255D%25EC%25A7%2580%25EB%258B%25B9%25EB%25A6%25AC&kind=Z3&cctvip=null&cctvch=null&id=2675/s/F5vTV%2By2NyVQhQP0hUu04zCxUyiX7P7SdWYclc0uLFHqi6zgZhSbq7FJZ%2Bag3T56wXh3cKpTrKLY4j2aaMi51etrVChD13Xjzu9Zxn3Hk=&cctvpasswd=null&cctvport=null&minX=127.68724013825106&minY=37.07159919298039&maxX=127.76618494906704&maxY=37.11181233551626"
+		  >
+		  </iframe>
+		  </div>
+		
+		<div class="embed-responsive embed-responsive-16by9">
+		 <iframe class="embed-responsive-item" 
+		  src="http://www.utic.go.kr/main/main.do" 
 		  allowfullscreen>
 		  </iframe>
 		</div>
 		
+		
+	
+		 
+		
+	
+		<!--
 		
 		 <div class="embed-responsive embed-responsive-16by9">
 		  <iframe class="embed-responsive-item" 
@@ -245,7 +252,7 @@ function goPage(page){
 		  src="http://www.utic.go.kr/view/map/cctvStream.jsp?cctvid=E912001&cctvname=%255B%25EC%2598%2581%25EB%258F%2599%25EC%2584%25A0%255D%25EC%259D%25B4%25EC%25B2%259C&kind=Z3&cctvip=null&cctvch=null&id=89/RoUxjchcDqYkeAjVLllnolhYdk/MIAzrcML4lOim/hCokfLhgKQjAKcM4ikjeydYJoP0ROJDLTcZk/k0u3FOvc5K0bOHFgYXpr8BQmtNfG4=&cctvpasswd=null&cctvport=null&minX=127.43434891450258&minY=37.188428900204045&maxX=127.64654760880018&maxY=37.284293829876205" 
 		  allowfullscreen>
 		  </iframe>
-		</div>
+		</div> -->
 		
 		
 	
