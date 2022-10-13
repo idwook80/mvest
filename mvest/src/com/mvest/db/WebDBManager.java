@@ -279,7 +279,7 @@ public class WebDBManager {
 		Statement stmt = null;
 		HashMap resultMap = new HashMap();
 		try {
-			//LOG.info(sql);
+			LOG.info(sql);
 			conn = pool.getConnection();
 			stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
@@ -292,7 +292,7 @@ public class WebDBManager {
 			}
 			int col = meta.getColumnCount();
 			
-			//LOG.debug("Result row:"+row+",col:"+col);
+			LOG.debug("Result row:"+row+",col:"+col);
 			
 			if(row == 0 || col == 0) return resultMap;
 			String[] columnNames = new String[col];

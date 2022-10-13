@@ -10,6 +10,7 @@
 	int mm 			= today.get(Calendar.MONTH)+1;
 	int dd			= today.get(Calendar.DATE);
 	
+	
 	String year 	= request.getParameter("year");
 	String month 	= request.getParameter("month");
 	String date		= request.getParameter("date");
@@ -53,22 +54,39 @@ function playSound ( soundname )
   var thissound = document.getElementById( soundname );
   thissound.play();
 }
-
-
 $(function(){
 	$("#input-form-today #to_date").val(today_date);
-	$("#today_date").text(today_date);
+/* 	$("#today_date").text(today_date); */
 	marketAll();
 	loadBalances();
+	getTime();
 	setInterval(function() {
 		loadBalances();
-	}, 1000*5);
+	}, 1000*10);
+	setInterval(function() {
+		getTime();
+	}, 1000);
+});
+function getTime(){
+	var today = new Date();   
 
-
-});	
+	var year = today.getFullYear(); // 년도
+	var month = today.getMonth() + 1;  // 월
+	var date = today.getDate();  // 날짜
+	var day = today.getDay();  // 요일
+	var hours = today.getHours(); // 시
+	var minutes = today.getMinutes();  // 분
+	var seconds = today.getSeconds();  // 초
+	var milliseconds = today.getMilliseconds(); // 밀리초
+	$("#today_date").text((year)+"년 "+getTimeFormat(month)+"월 "+getTimeFormat(date) + "일");
+	$("#today_time").text(getTimeFormat(hours)+":"+getTimeFormat(minutes)+":"+getTimeFormat(seconds));
+}
+function getTimeFormat(time){
+	return time < 10 ? "0" + time : ""+time;
+}
 function loadBalances(){
 	bybit('main');
-	bybit('sub');
+
 }
 function marketAll(){
 	$.ajax({
@@ -234,7 +252,7 @@ function getBinanceTag(str){
 }
 function bybit(user){
 	var param 		= $("#pageForm").serialize();
-		param += "&user=" + user;
+		param 		+= "&user=" + user;
 	var REQ_TYPE 	= "get";
 	var REQ_URL  	= "../bybit/test";
 	$.ajax({
@@ -247,30 +265,63 @@ function bybit(user){
 		success		: function(res){
 					/* loadingHide(); */
 					var str 		= JSON.stringify(res,null,2);
-					console.log(str);
+					//console.log(str);
 					var result 		= res.result;
-					var usdt = res.usdt;
-					bybitSet(user, usdt);
+					var usdt = res.balances.result.USDT;
+					var positions = res.positions.result;
+					var kline_1		= res.kline_1.result;
+					bybitBalanceSet(user, usdt);
+					bybitPositions(user, positions);
+					bybitKline_1(kline_1[0]);
 					if(status <= 100){
 					}else {
 						ajaxLoadFail(result);
 					}
-				 	
 		},
 		error		: function() {
 					ajaxError();
 		}
 	});
 }
-function bybitSet(user, usdt){
+function bybitKline_1(kline_1){
+	var open_price 	= kline_1.open;
+	var close_price = kline_1.close;
+	var volume = kline_1.volume;
+	
+	if(close_price < open_price){
+		$(".current_price").html("<i class=\"fas fa-arrow-down text-danger\"></i><span class=\"text-danger\"> "+comma(close_price.toFixed(1))+"</span>");
+	}else {
+		$(".current_price").html("<i class=\"fas fa-arrow-up text-success\"></i><span class=\"text-success\"> "+comma(close_price.toFixed(1))+"</span>");
+	}
+
+	$(".current_volume").text(volume.toFixed(2));
+}
+function bybitPositions(user, positions){
+	
+	for(var i=0; i<positions.length; i++){
+		var position = positions[i];
+		var entry_price = position.entry_price;
+		var side = position.side;
+		var size = position.size;
+		var position =  "long";
+		if(side == 'Sell'){
+			position = "short";
+			size = size*-1;
+		}
+		
+		$("."+user+"-entry-price-" + position).text(comma(entry_price.toFixed(1)));
+		$("."+user+"-size-" + position).text(size);
+	}
+	if(user == 'main') bybit('sub');
+}
+function bybitBalanceSet(user, usdt){
 	var className = ".bybit-area-"+user
 	$(className).html('');
-	$(className).append(bybitTag("잔고", usdt.wallet_balance.toFixed(2)) );
-	$(className).append(bybitTag("실현가능",usdt.unrealised_pnl.toFixed(2)) );
-	$(className).append(bybitTag("실현금액",usdt.realised_pnl.toFixed(2)) );
-	$(className).append(bybitTag("예상잔고",usdt.equity.toFixed(2)) );
-	$(className).append(bybitTag("이용가능",usdt.available_balance.toFixed(2)) );
-	
+	$(className).append(bybitTag("실현잔고", usdt.wallet_balance.toFixed(2)) );
+	$(className).append(bybitTag("실현금액", usdt.realised_pnl.toFixed(2)) );
+	$(className).append(bybitTag("미실현액", usdt.unrealised_pnl.toFixed(2)) );
+	$(className).append(bybitTag("예상잔고", usdt.equity.toFixed(2)) );
+	/* $(className).append(bybitTag("이용가능",usdt.available_balance.toFixed(2)) ); */
 	/* $(".bybit-area").append(bybitTag("used_margin",usdt.used_margin.toFixed(2)));
 	$(".bybit-area").append(bybitTag("order_margin",usdt.order_margin.toFixed(2)));
 	$(".bybit-area").append(bybitTag("position_margin",usdt.position_margin.toFixed(2)));
@@ -283,16 +334,17 @@ function bybitSet(user, usdt){
 	
 	
 }
+var wondollor = 140;
 function bybitTag(key, value){
 	 var tag 	= new StringBuffer();
 	 tag.append("<div><li class=\"list-group-item d-flex justify-content-between align-items-center\">");
 	 tag.append("<span>" + key+ "</span>");
 	 
-	 if(value > 0) tag.append("<span class='text-danger'>$" + value+ "</span>");
-	 else tag.append("<span class='text-primary'>$" + value+ "</span>");
+	 if(value > 0) tag.append("<span class='text-success'>$" + value+ "</span>");
+	 else tag.append("<span class='text-danger'>$" + value+ "</span>");
 	 
-	 if(value > 0) tag.append("<span class='text-danger'>￦" + comma((value * 1400).toFixed(0))+ "</span>");
-	 else tag.append("<span class='text-primary'>￦" + comma((value * 1400).toFixed(0))+ "</span>");
+	 if(value > 0) tag.append("<span class='text-success'>￦" + comma((value * wondollor).toFixed(0))+ "</span>");
+	 else tag.append("<span class='text-danger'>￦" + comma((value * 1400).toFixed(0))+ "</span>");
 	 
 	 tag.append("</li></div>");
 	 
@@ -306,10 +358,22 @@ function bybitTag(key, value){
 <div class="container-fluid">
 
 	<div class="row">
-			<span  class="text-dark" style="font-size:24px;font-weight:bold;margin-right:20px;">
-			바이비트 잔고 정보
-			</span>
-			 <div class="col-md-12  col-sm-12 text-right"><span class="text-right text-dark"><strong>오늘 : </strong><strong id="today_date">2021-01-01</strong></span></div> 
+		<div class="col-sm-8  text-left">
+			<span  class="text-dark" style="font-size:20px;font-weight:bold;;">
+			<i class="fab fa-bitcoin text-warning"></i><span style="padding-left:5px;">버전 종합 정보 	<strong id="today_date" style="font-size:10px;">0000-00-00</strong></span> 
+			</span><br>
+				<span style="font-size:12px;">
+				현재가 : <span class="current_price"><i class="fas fa-arrow-up text-danger"></i><span>00000</span></span>
+			 	, 1분거래량 : <span class="current_volume">0000</span>
+			 	<i style="font-size:8px;">(<span id="today_time">00:00:00</span>)</i>
+			 </span>
+		</div>
+	 	<!-- <div class="col-sm-4 text-right" style="font-size:10px;">
+	 		<span class="text-right text-dark">
+	 	 	<strong id="today_date">0000-00-00</strong>
+	 		</span><br>
+	 		<span><strong id="today_time">000000-00</strong></span>
+	 	</div>  -->
  	</div>
 	<hr>
 	<div class="col-sm-12">
@@ -323,16 +387,20 @@ function bybitTag(key, value){
 				  				
 			  					<ul class="list-group col-sm-12">
 									  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
-										  <div class="col-sm-2"><span class=""><h4 class="text-light">예약버전</h4></span></div>
-								  		   <div class="col-sm-10 text-right" style="padding:1px;" >
-									  		   <span class="btn btn-success" style="margin:0;padding:1px;">
-								  					 <small style="font-size:12px;"> 19,385.0<br>12.023</small>
-									  			</span>
-									  		    <span class="btn btn-danger" style="margin:0;padding:1px;">
-									  					<small style="font-size:12px;">19285.0<br>-120.02</small>
-									  			</span>
-								  		   </div>
-	  								</li>
+										 <span><strong>예약버전</strong></span>
+										 <span class="text-right">
+										 	 <span class="btn btn-success" style='line-height:80%'>
+										 	 	<span class="main-entry-price-long" style="font-size:12px;">19,105.0</span><br> 
+										 	 	<span class="main-size-long" style="font-size:8px;">112.005</span>
+										 	 </span>
+										 	 
+										 	  <span class="btn btn-danger" style='line-height:80%'>
+										 	 	<span class="main-entry-price-short" style="font-size:12px;">19,105.0</span><br> 
+										 	 	<span class="main-size-short" style="font-size:8px;">-112.005</span>
+										 	 </span>
+										 </span>
+									
+	  								 </li>
 									  <div class="bybit-area-main" style="display:">
 				  					  </div>
 							 	</ul>
@@ -356,16 +424,25 @@ function bybitTag(key, value){
 				    <div class="col-sm-12">
 				  		<div class="row">
 			  					<ul class="list-group col-sm-12">
-	  					
 									  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
-									   <span class="">
-									  			<h4 class="text-light">자동버전</h4>	
-									  	</span>
-									  </li>
+										 <span><strong>자동버전</strong></span>
+										 <span class="text-right">
+										 
+										 	 <span class="btn btn-success" style='line-height:80%'>
+										 	 	<span class="sub-entry-price-long" style="font-size:12px;">19,105.0</span><br> 
+										 	 	<span class="sub-size-long"  style="font-size:8px;">112.005</span>
+										 	 </span>
+										 	 
+										 	  <span class="btn btn-danger" style='line-height:80%'>
+										 	 	<span class="sub-entry-price-short" style="font-size:12px;">19,105.0</span><br> 
+										 	 	<span class="sub-size-short" style="font-size:8px;">-112.005</span>
+										 	 </span>
+										 </span>
+									
+	  								 </li>
 									  <div class="bybit-area-sub" style="display:">
 				  					  </div>
 							 	</ul>
-				  			 
 				  		</div>
 				     
 					</div>
@@ -376,9 +453,7 @@ function bybitTag(key, value){
 				</div>
 		</div>
 	</div>
-	
-	<hr>
-
+		<hr>
 	<div class="col-sm-12">
 		<div class="row">
 				<div class="container-fluid">
@@ -386,24 +461,29 @@ function bybitTag(key, value){
 				  <!-- Right Column -->
 				     	 <%-- <%@ include file="right.jsp" %>  --%>
 				    <div class="col-sm-12">
-				  		
 				  		<div class="row">
 			  					<ul class="list-group col-sm-12">
 	  					
 									  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
-									   <span>종목</span>
-									    <span>현재가</span>
-									    <span>등락률</span>
-									  </li>
-									  
-									  <div class="wins-body" style="display:inline-block">
-				  					  </div>
+										 <span><strong>자동버전</strong></span>
+										 <span class="text-right">
+										 
+										 	 <span class="btn btn-success" style='line-height:80%'>
+										 	 	<span style="font-size:12px;">19,105.0</span><br> 
+										 	 	<span style="font-size:8px;">112.005</span>
+										 	 </span>
+										 	 
+										 	  <span class="btn btn-danger" style='line-height:80%'>
+										 	 	<span style="font-size:12px;">19,105.0</span><br> 
+										 	 	<span style="font-size:8px;">-112.005</span>
+										 	 </span>
+										 </span>
+									
+	  								 </li>
+								  <div class="bybit-area-three" style="display:">
+			  					  </div>
 							 	</ul>
 				  			 
-				  		</div>
-				  		<br>
-				  		<div class="row container-fluid">
-				  		  <%@include file="../_paging.jsp" %>
 				  		</div>
 				     
 					</div>
@@ -414,6 +494,7 @@ function bybitTag(key, value){
 				</div>
 		</div>
 	</div>
+	<hr>
 	<div class="list-group col-sm-12 ">
 				
 				  <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">

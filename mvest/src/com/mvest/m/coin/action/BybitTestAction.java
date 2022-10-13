@@ -1,6 +1,7 @@
 package com.mvest.m.coin.action;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -13,16 +14,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.internal.LinkedTreeMap;
 import com.mvest.model.ActionModel;
+import com.mvest.test.bybit.KlineRest;
+import com.mvest.test.bybit.PositionRest;
 import com.mvest.test.bybit.WalletRest;
+import com.mvest.test.bybit.db.BybitDao;
+
+import io.vavr.API;
 
 public class BybitTestAction extends ActionModel {
-	public static String API_KEY 		= "HKVOISQYXKYOECTEYG";
-	public static String SECRET_KEY 	= "DZSHAUZQCOGFZHNFGPGQHCSVHGNVXOXIZROH";
-	
-	public final static String BYBIT_MAIN_KEY="F05n0T6G79ivD4UZKW";
-	public final static String BYBIT_MAIN_SECRET="QhYN61Cn9tKSIrfHxSMo3me9C6cfZrFLHEmv";
-	public final static String BYBIT_SUB_KEY="HKVOISQYXKYOECTEYG";
-	public final static String BYBIT_SUB_SECRET="DZSHAUZQCOGFZHNFGPGQHCSVHGNVXOXIZROH";
+	public static String API_KEY 		= null;
+	public static String SECRET_KEY 	= null;
 	
 	@Override
 	public void perform(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -35,38 +36,49 @@ public class BybitTestAction extends ActionModel {
 		String where	= null;
 		String sort 	= getParameter("sort");
 		String orderby  = getParameter("order");
+		String id		= getParameter("id");
 		String user		= getParameter("user");
 		
-		
-		System.out.println(user);
 		if(user.toUpperCase().equals("SUB")) {
-			API_KEY = BYBIT_SUB_KEY;
-			SECRET_KEY = BYBIT_SUB_SECRET;
+			id = "idwook01";
 		}else if(user.toUpperCase().equals("MAIN")) {
-			API_KEY = BYBIT_MAIN_KEY;
-			SECRET_KEY = BYBIT_MAIN_SECRET;
+			id = "idwook80";
+			
 		}
-	/*	if(isNotNull(orderby)) {
-			orderby = "A."+orderby;
-		}else {
-			orderby  = "A.si_id";
+		try {
+			Map userMap = (Map)BybitDao.getInstace().select(id);
+			if(userMap != null) {
+				System.out.println(userMap);
+				String web_id		= (String) userMap.get("id");
+				String user_id 		= (String) userMap.get("user_id");
+				String api_key 		= (String) userMap.get("api_key");
+				String api_secret 	= (String) userMap.get("api_secret");
+				
+				if(web_id.equals(id)) {
+					API_KEY 	= api_key.trim();
+					SECRET_KEY	= api_secret.trim();
+				}
+			
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
 		}
-		if(isNotNull(sort)){
-			orderby += " "+ sort;
-		}else {
-			orderby += " ASC";
-		}*/
-			if(isNull(orderby)) orderby = null;
+		
+ 
+	     if(isNull(orderby)) orderby = null;
 		
 		try {
-			String str = getWalletBalanceJson();
-	         addJsonObjectProperty("balance", str);
-			/* Gson 			gson 					= 	new Gson();
-	         String json = gson.toJson(jsonString);
-			//addJsonObjectProperty("price", jsonString);
-			//addJsonObjectProperty("price2", json);
-*/			
-			setResultOk();
+			if(API_KEY != null) {
+				String balance = getWalletBalanceJson();
+		         //addJsonObjectProperty("balance", balance);
+		        String position = getPositions();
+		       // addJsonObjectProperty("position", position);
+		        String kline = getKline_1();
+				setResultOk();
+			}else {
+				 setResultFail("Not Found User");
+			}
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -90,9 +102,35 @@ public class BybitTestAction extends ActionModel {
 	       
 	        LinkedTreeMap result = (LinkedTreeMap)map.get("result");
 	        LinkedTreeMap usdt  = (LinkedTreeMap) result.get("USDT");
-	        addJsonObject("response", el);
-	        addJsonObject("usdt", usdt);
+	        //addJsonObject("response", el);
+	        addJsonObject("balances", el);
+	        
+	        //addJsonObject("usdt", usdt);
+	        //System.out.println(el);
+	        
+	        return el.toString();
+	        
+			//addJsonObjectProperty("balance", String.valueOf(balance));
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	public String getPositions() {
+		try {
+			String str = PositionRest.getActiveMyPosition(API_KEY, SECRET_KEY, "BTCUSDT");
+			JsonParser parser = new JsonParser();
+	        JsonElement el =  parser.parse(str);
 	        System.out.println(el);
+	        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	        
+	        Map<String, Object> map  = gson.fromJson(gson.toJson(el), Map.class);
+	        double ret_code = (Double)map.get("ret_code");
+	       
+	        ArrayList positions = (ArrayList)map.get("result");
+	        addJsonObject("positions", el);
+	       // addJsonObject("positions", positions);
+	       // System.out.println(el);
 	        
 	        return el.toString();
 	        
@@ -110,6 +148,28 @@ public class BybitTestAction extends ActionModel {
 			e.printStackTrace();
 		}
 		return 0;
+	}
+	
+	public String getKline_1() {
+		try {
+			String str = KlineRest.getActiveKline_1(API_KEY, SECRET_KEY, "BTCUSDT");
+			JsonParser parser = new JsonParser();
+	        JsonElement el =  parser.parse(str);
+	        System.out.println(el);
+	        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	        
+	        Map<String, Object> map  = gson.fromJson(gson.toJson(el), Map.class);
+	        double ret_code = (Double)map.get("ret_code");
+	       
+	        ArrayList positions = (ArrayList)map.get("result");
+	        addJsonObject("kline_1", el);
+	        
+	        return el.toString();
+	        
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return "";
 	}
  
 

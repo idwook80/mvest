@@ -59,17 +59,18 @@ $(function(){
 	$("#input-form-today #to_date").val(today_date);
 	$("#today_date").text(today_date);
 	marketAll();
-	loadBalances();
 	setInterval(function() {
-		loadBalances();
-	}, 1000*5);
-
+		 list();
+			binance();
+	}, 1000*10); 
+	playSound('beep');
+	
+	setTimeout(function() {
+		playSound('beep');
+	}, 1000);
 
 });	
-function loadBalances(){
-	bybit('main');
-	bybit('sub');
-}
+	
 function marketAll(){
 	$.ajax({
         url: "https://api.upbit.com/v1/market/all",
@@ -116,7 +117,10 @@ function getCoins(market){
 
 
 function list(){
+		
 		/* 
+		
+		
 		var arr_krw_markets = 'KRW-XRP,KRW-ETH';
 		$.ajax({
 		          url: "https://api.upbit.com/v1/ticker?markets=" +arr_krw_markets,
@@ -232,151 +236,37 @@ function getBinanceTag(str){
 	 
  	return tag.toString();
 }
-function bybit(user){
-	var param 		= $("#pageForm").serialize();
-		param += "&user=" + user;
-	var REQ_TYPE 	= "get";
-	var REQ_URL  	= "../bybit/test";
-	$.ajax({
-		type		: REQ_TYPE,
-		url			: REQ_URL,
-		data		: param,
-		dataType	: "json", 
-		async		: true,
-		beforeSend	: function(){/*  loadingShow(); */ },
-		success		: function(res){
-					/* loadingHide(); */
-					var str 		= JSON.stringify(res,null,2);
-					console.log(str);
-					var result 		= res.result;
-					var usdt = res.usdt;
-					bybitSet(user, usdt);
-					if(status <= 100){
-					}else {
-						ajaxLoadFail(result);
-					}
-				 	
-		},
-		error		: function() {
-					ajaxError();
-		}
-	});
-}
-function bybitSet(user, usdt){
-	var className = ".bybit-area-"+user
-	$(className).html('');
-	$(className).append(bybitTag("잔고", usdt.wallet_balance.toFixed(2)) );
-	$(className).append(bybitTag("실현가능",usdt.unrealised_pnl.toFixed(2)) );
-	$(className).append(bybitTag("실현금액",usdt.realised_pnl.toFixed(2)) );
-	$(className).append(bybitTag("예상잔고",usdt.equity.toFixed(2)) );
-	$(className).append(bybitTag("이용가능",usdt.available_balance.toFixed(2)) );
-	
-	/* $(".bybit-area").append(bybitTag("used_margin",usdt.used_margin.toFixed(2)));
-	$(".bybit-area").append(bybitTag("order_margin",usdt.order_margin.toFixed(2)));
-	$(".bybit-area").append(bybitTag("position_margin",usdt.position_margin.toFixed(2)));
-	$(".bybit-area").append(bybitTag("occ_closing_fee",usdt.occ_closing_fee.toFixed(2)));
-	$(".bybit-area").append(bybitTag("occ_funding_fee",usdt.occ_funding_fee.toFixed(2)));
-	
-	$(".bybit-area").append(bybitTag("cum_realised_pnl",usdt.cum_realised_pnl.toFixed(2)));
-	$(".bybit-area").append(bybitTag("given_cash",usdt.given_cash.toFixed(2)));
-	$(".bybit-area").append(bybitTag("service_cash",usdt.service_cash.toFixed(2))); */
-	
-	
-}
-function bybitTag(key, value){
-	 var tag 	= new StringBuffer();
-	 tag.append("<div><li class=\"list-group-item d-flex justify-content-between align-items-center\">");
-	 tag.append("<span>" + key+ "</span>");
-	 
-	 if(value > 0) tag.append("<span class='text-danger'>$" + value+ "</span>");
-	 else tag.append("<span class='text-primary'>$" + value+ "</span>");
-	 
-	 if(value > 0) tag.append("<span class='text-danger'>￦" + comma((value * 1400).toFixed(0))+ "</span>");
-	 else tag.append("<span class='text-primary'>￦" + comma((value * 1400).toFixed(0))+ "</span>");
-	 
-	 tag.append("</li></div>");
-	 
- 	return tag.toString();
- 	
-}
+
 </script>
 
 <%@ include file="navbar.jsp" %> 
 
+	<audio src="alert_tone.mp3" id="beep" autostart="false"></audio>
+	<input type=button onclick="playSound('beep')">play</input>
+	
+	
+	
 <div class="container-fluid">
 
 	<div class="row">
 			<span  class="text-dark" style="font-size:24px;font-weight:bold;margin-right:20px;">
-			바이비트 잔고 정보
+			업비트 자동매매 테스트
 			</span>
-			 <div class="col-md-12  col-sm-12 text-right"><span class="text-right text-dark"><strong>오늘 : </strong><strong id="today_date">2021-01-01</strong></span></div> 
+			    <div class="col-md-12  col-sm-12 text-right"><span class="text-right text-dark"><strong>Today : </strong><strong id="today_date">2021-01-01</strong></span></div>
  	</div>
 	<hr>
-	<div class="col-sm-12">
-		<div class="row">
-				<div class="container-fluid">
-				 <div class="row">
-				  <!-- Right Column -->
-				     	 <%-- <%@ include file="right.jsp" %>  --%>
-				    <div class="col-sm-12">
-				  		<div class="row">
-				  				
-			  					<ul class="list-group col-sm-12">
-									  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
-										  <div class="col-sm-2"><span class=""><h4 class="text-light">예약버전</h4></span></div>
-								  		   <div class="col-sm-10 text-right" style="padding:1px;" >
-									  		   <span class="btn btn-success" style="margin:0;padding:1px;">
-								  					 <small style="font-size:12px;"> 19,385.0<br>12.023</small>
-									  			</span>
-									  		    <span class="btn btn-danger" style="margin:0;padding:1px;">
-									  					<small style="font-size:12px;">19285.0<br>-120.02</small>
-									  			</span>
-								  		   </div>
-	  								</li>
-									  <div class="bybit-area-main" style="display:">
-				  					  </div>
-							 	</ul>
-				  			 
-				  		</div>
-					</div>
-					  <!-- Right Column -->
-							<%--  <%@ include file="right.jsp" %>  --%>
-					  <!-- Right Column -->
-				   </div>
-				</div>
-		</div>
+
+
+	<div class="row">
+			<div class="col-sm-12 text-center last-win" >
+  		<div class="col-sm-12">
+	  		<span  class="text-dark" style="font-size:24px;font-weight:bold;margin-right:20px;">
+	  		<span class="win-round text-danger"></span>
+	  				업비트 코인 마켓 정보
+	  		</span>
+  		</div>
+ 	 </div>
 	</div>
-	<hr>
-	<div class="col-sm-12">
-		<div class="row">
-				<div class="container-fluid">
-				 <div class="row">
-				  <!-- Right Column -->
-				     	 <%-- <%@ include file="right.jsp" %>  --%>
-				    <div class="col-sm-12">
-				  		<div class="row">
-			  					<ul class="list-group col-sm-12">
-	  					
-									  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
-									   <span class="">
-									  			<h4 class="text-light">자동버전</h4>	
-									  	</span>
-									  </li>
-									  <div class="bybit-area-sub" style="display:">
-				  					  </div>
-							 	</ul>
-				  			 
-				  		</div>
-				     
-					</div>
-					  <!-- Right Column -->
-							<%--  <%@ include file="right.jsp" %>  --%>
-					  <!-- Right Column -->
-				   </div>
-				</div>
-		</div>
-	</div>
-	
 	<hr>
 
 	<div class="col-sm-12">
@@ -463,52 +353,6 @@ function bybitTag(key, value){
 				
 	
 	</div>
-	
-	<!-- Container (Services Section) -->
-<div id="services" class="container-fluid text-center">
-  <h2>SERVICES</h2>
-  <h4>What we offer</h4>
-  <br>
-  <div class="row slideanim">
-    <div class="col-sm-4">
-      <span class="glyphicon glyphicon-off logo-small"></span>
-      <h4>POWER</h4>
-      <p>Lorem ipsum dolor sit amet..</p>
-    </div>
-    <div class="col-sm-4">
-      <span class="glyphicon glyphicon-heart logo-small"></span>
-      <h4>LOVE</h4>
-      <p>Lorem ipsum dolor sit amet..</p>
-    </div>
-    <div class="col-sm-4">
-      <span class="glyphicon glyphicon-lock logo-small"></span>
-      <h4>JOB DONE</h4>
-      <p>Lorem ipsum dolor sit amet..</p>
-    </div>
-  </div>
-  <br><br>
-  <div class="row slideanim">
-    <div class="col-sm-4">
-      <span class="glyphicon glyphicon-leaf logo-small"></span>
-      <h4>GREEN</h4>
-      <p>Lorem ipsum dolor sit amet..</p>
-    </div>
-    <div class="col-sm-4">
-      <span class="glyphicon glyphicon-certificate logo-small"></span>
-      <h4>CERTIFIED</h4>
-      <p>Lorem ipsum dolor sit amet..</p>
-    </div>
-    <div class="col-sm-4">
-      <span class="glyphicon glyphicon-wrench logo-small"></span>
-      <h4 style="color:#303030;">HARD WORK</h4>
-      <p>Lorem ipsum dolor sit amet..</p>
-    </div>
-  </div>
-</div>
-	
-	
-	
-	
 	<div>
 							
 		

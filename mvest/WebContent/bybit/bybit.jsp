@@ -68,6 +68,7 @@ $(function(){
 });	
 function loadBalances(){
 	bybit('main');
+	
 	bybit('sub');
 }
 function marketAll(){
@@ -242,7 +243,7 @@ function bybit(user){
 		url			: REQ_URL,
 		data		: param,
 		dataType	: "json", 
-		async		: true,
+		async		: false,
 		beforeSend	: function(){/*  loadingShow(); */ },
 		success		: function(res){
 					/* loadingHide(); */
