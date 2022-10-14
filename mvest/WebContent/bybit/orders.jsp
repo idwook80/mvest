@@ -35,6 +35,12 @@
 	
 
 %>
+<style>
+a {
+  text-decoration: none;
+  color : white;
+}
+</style>
 	
 <%@ include file="common.jsp" %>
 <body>
@@ -49,16 +55,11 @@ var count = 0;
 var coins = [];
 var market_code ="";
 
-function playSound ( soundname )
-{
-  var thissound = document.getElementById( soundname );
-  thissound.play();
-}
 $(function(){
 	$("#input-form-today #to_date").val(today_date);
 /* 	$("#today_date").text(today_date); */
 	marketAll();
-	loadBalances();
+	getLoadOrders();
 	getTime();
 	setInterval(function() {
 		loadBalances();
@@ -250,6 +251,123 @@ function getBinanceTag(str){
 	 
  	return tag.toString();
 }
+
+
+
+function getOrders(id,bpage,blimit){
+	var param 		= $("#pageForm").serialize();
+		param 		+= "&id=" + id + "&bpage="+bpage+"&blimit="+blimit;
+	var REQ_TYPE 	= "get";
+	var REQ_URL  	= "../bybit/orders";
+	$.ajax({
+		type		: REQ_TYPE,
+		url			: REQ_URL,
+		data		: param,
+		dataType	: "json", 
+		async		: true,
+		beforeSend	: function(){/*  loadingShow(); */ },
+		success		: function(res){
+					/* loadingHide(); */
+					var str 		= JSON.stringify(res,null,2);
+					//console.log(str);
+					var result 		= res.result;
+					var orders 		= res.orders.result.data;
+					//console.log(orders);
+					updateOrders(orders);
+					
+					if(status <= 100){
+					}else {
+						ajaxLoadFail(result);
+					}
+		},
+		error		: function() {
+					ajaxError();
+		}
+	});
+}
+
+var sortOrders;
+function updateOrders(orders){
+	sortOrders = orders.sort(function(a, b){
+		return  b.price- a.price;
+	});
+	$(".orders-area").html('');
+   	 for(var i=0; i<sortOrders.length; i++){
+			var order = sortOrders[i];
+			$(".orders-area").append(getOrderTag(order));
+   	 }
+   	
+}
+function getOpenClose(side, reduce){
+	if(side == 'Buy'){
+		return !reduce;
+	}else if(side == 'Sell'){
+		return !reduce;
+	}
+	return false;
+}
+function getPosition_id(side, reduce){
+	// 0 : one way, 1, Long , 2 : Short
+	if(side == 'Buy'){
+		return reduce ? 2: 1;
+	}else if(side == 'Sell'){
+		return reduce ? 1: 2;
+	}
+	return 0;
+}
+function getPosition(side, reduce){
+	// Long   Buy,Reduce(false) : Open ,  Sell,Reduce(true)     : Close
+	// Short  Buy,Reduce(true) 	: Close,  Sell,Reduce(false) 	: Open
+	if(side == 'Buy'){
+		return reduce ? "Close Short" : "Open Long";
+	}else if(side == 'Sell'){
+		return reduce ? "Close Long" : "Open Short";
+	}
+}
+function getLoadOrders(){
+	p_id = 0;
+	getOrders('idwook80',1,50);
+}
+function setReloadOrder(pid){
+	p_id =pid;
+	updateOrders(sortOrders);
+}
+
+var p_id = 0; //1 short //2 long
+var o_id = "all"; //open close
+
+function getOrderTag(o){
+	var side 	= o.side;
+	var price 	= o.price;
+	var qty	  	= o.qty;
+	var reduce_only = o.reduce_only;
+	var order_type	= o.order_type;
+	var order_id	= o.order_id;
+	var position_id = getPosition_id(side, reduce_only);
+	var position	= getPosition(side, reduce_only);
+	var is_open		= getOpenClose(side, reduce_only);
+	var color 		= (position == 'Open Long' || position == 'Close Short') ? "success" : "danger"; 
+	console.log(position_id);
+	if(position_id != p_id){
+	 var tag 	= new StringBuffer();
+		 tag.append(" <a href=\"#\" class=\"list-group-item list-group-item-action flex-column align-items-start\">");
+		 tag.append("  <div class=\"d-flex w-100 justify-content-between\">");
+		 tag.append("  <strong class=\"mb-1  badge badge-"+color+"\" >"+position+" </strong>");
+		 tag.append("  <strong style=\"text-align: right;\">"+comma(price)+"</strong>");
+		 tag.append("  <strong style=\"text-align: right;\">"+comma(qty)+"</strong>");
+		/*  tag.append("  <small class=\"btn btn-secondary\">취소</small>"); */
+		 tag.append("   </div>");
+	  
+	     tag.append(" <div class=\"d-flex w-100 justify-content-between\">");
+		 tag.append(" 	<small class=\"text-secondary\">"+(is_open ? "Open" : "Close")+"</small>");
+		 tag.append("   <small>"+qty+"</small>");
+		 tag.append("   <small>-125,000</small>");
+		 tag.append("  </div>"); 
+		 tag.append(" </a>");
+		return tag.toString();
+	}
+	return "";
+}
 function bybit(user){
 	var param 		= $("#pageForm").serialize();
 		param 		+= "&user=" + user;
@@ -270,7 +388,7 @@ function bybit(user){
 					var usdt = res.balances.result.USDT;
 					var positions = res.positions.result;
 					var kline_1		= res.kline_1.result;
-					bybitBalanceSet(user, usdt);
+					//bybitBalanceSet(user, usdt);
 					bybitPositions(user, positions);
 					bybitKline_1(kline_1[0]);
 					if(status <= 100){
@@ -410,7 +528,7 @@ function bybitTag(key, value){
 	<div class="row">
 		<div class="col-sm-8  text-left">
 			<span  class="text-dark" style="font-size:20px;font-weight:bold;;">
-			<i class="fab fa-bitcoin text-warning"></i><span style="padding-left:5px;">버전 종합 정보 	<strong id="today_date" style="font-size:10px;">0000-00-00</strong></span> 
+			<i class="fab fa-bitcoin text-warning"></i><span style="padding-left:5px;">주문상태 	<strong id="today_date" style="font-size:10px;">0000-00-00</strong></span> 
 			</span><br>
 				<span style="font-size:12px;">
 				현재가 : <span class="current_price"><i class="fas fa-arrow-up text-danger"></i><span>00000</span></span>
@@ -437,22 +555,24 @@ function bybitTag(key, value){
 				  				
 			  					<ul class="list-group col-sm-12">
 									  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
-										 <span><strong>예약버전</strong></span>
 										 <span class="text-right">
-										 	 <span class="btn btn-success" style='line-height:80%'>
-										 	 	<span class="main-entry-price-long" style="font-size:12px;">19,105.0</span><br> 
-										 	 	<span class="main-size-long" style="font-size:8px;">112.005</span>
+										  	<span class="btn btn-info" style='line-height:100%' onclick="setReloadOrder(0)">
+										 	 	<span    class="" style="font-size:12px;"  >전체</span>
+										 	 </span>
+										 	 <span class="btn btn-success" style='line-height:100%' onclick="setReloadOrder(2)">
+										 	 	<span class="" style="font-size:12px;" >Long</span> 
 										 	 </span>
 										 	 
-										 	  <span class="btn btn-danger" style='line-height:80%'>
-										 	 	<span class="main-entry-price-short" style="font-size:12px;">19,105.0</span><br> 
-										 	 	<span class="main-size-short" style="font-size:8px;">-112.005</span>
+										 	  <span class="btn btn-danger" style='line-height:100%'  onclick="setReloadOrder(1)">
+										 	 	<aspanclass="" style="font-size:12px;">Short</span>
+										 	 </span>
+										 	 
+										 	  <span class="btn btn-light" style='line-height:100%'  onclick="getLoadOrders()">
+										 	 	<aspanclass="" style="font-size:12px;">조회</span>
 										 	 </span>
 										 </span>
 									
 	  								 </li>
-									  <div class="bybit-area-main" style="display:">
-				  					  </div>
 							 	</ul>
 				  			 
 				  		</div>
@@ -464,190 +584,26 @@ function bybitTag(key, value){
 				</div>
 		</div>
 	</div>
-	<hr>
-	<div class="col-sm-12">
-		<div class="row">
-				<div class="container-fluid">
-				 <div class="row">
-				  <!-- Right Column -->
-				     	 <%-- <%@ include file="right.jsp" %>  --%>
-				    <div class="col-sm-12">
-				  		<div class="row">
-			  					<ul class="list-group col-sm-12">
-									  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
-										 <span><strong>자동버전</strong></span>
-										 <span class="text-right">
-										 
-										 	 <span class="btn btn-success" style='line-height:80%'>
-										 	 	<span class="sub-entry-price-long" style="font-size:12px;">19,105.0</span><br> 
-										 	 	<span class="sub-size-long"  style="font-size:8px;">112.005</span>
-										 	 </span>
-										 	 
-										 	  <span class="btn btn-danger" style='line-height:80%'>
-										 	 	<span class="sub-entry-price-short" style="font-size:12px;">19,105.0</span><br> 
-										 	 	<span class="sub-size-short" style="font-size:8px;">-112.005</span>
-										 	 </span>
-										 </span>
-									
-	  								 </li>
-									  <div class="bybit-area-sub" style="display:">
-				  					  </div>
-							 	</ul>
-				  		</div>
-				     
-					</div>
-					  <!-- Right Column -->
-							<%--  <%@ include file="right.jsp" %>  --%>
-					  <!-- Right Column -->
-				   </div>
-				</div>
-		</div>
-	</div>
-		<hr>
-	<div class="col-sm-12">
-		<div class="row">
-				<div class="container-fluid">
-				 <div class="row">
-				  <!-- Right Column -->
-				     	 <%-- <%@ include file="right.jsp" %>  --%>
-				    <div class="col-sm-12">
-				  		<div class="row">
-			  					<ul class="list-group col-sm-12">
-	  					
-									  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
-										 <span><strong>자동버전</strong></span>
-										 <span class="text-right">
-										 
-										 	 <span class="btn btn-success" style='line-height:80%'>
-										 	 	<span style="font-size:12px;">19,105.0</span><br> 
-										 	 	<span style="font-size:8px;">112.005</span>
-										 	 </span>
-										 	 
-										 	  <span class="btn btn-danger" style='line-height:80%'>
-										 	 	<span style="font-size:12px;">19,105.0</span><br> 
-										 	 	<span style="font-size:8px;">-112.005</span>
-										 	 </span>
-										 </span>
-									
-	  								 </li>
-								  <div class="bybit-area-three" style="display:">
-			  					  </div>
-							 	</ul>
-				  			 
-				  		</div>
-				     
-					</div>
-					  <!-- Right Column -->
-							<%--  <%@ include file="right.jsp" %>  --%>
-					  <!-- Right Column -->
-				   </div>
-				</div>
-		</div>
+	 
 	</div>
 	<hr>
-	<div class="list-group col-sm-12 ">
+	<div class="list-group col-sm-12 orders-area">
 				
-				  <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
-				    <div class="d-flex w-100 justify-content-between">
-				      <h5 class="mb-1" style="width: 100px;">Binance </h5>
-				      <strong style="text-align: right;" class="binance-price">39,840,000</strong>
-				      <h5 class="mb-1 text-danger">-0.42% </h5>
-				    </div>
+	  <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+	    <div class="d-flex w-100 justify-content-between">
+	      <h5 class="mb-1" style="width: 100px;">Binance </h5>
+	      <strong style="text-align: right;" class="binance-price">39,840,000</strong>
+	      <h5 class="mb-1 text-danger">-0.42% </h5>
+	    </div>
+	  
+		  <div class="d-flex w-100 justify-content-between">
+		  	<small class="text-secondary">KRW-XRP</small>
+		    <small>-125,000</small>
+		   </div>
+	  </a>
 				  
-					  <div class="d-flex w-100 justify-content-between">
-					  	<small class="text-secondary">KRW-XRP</small>
-					    <small>-125,000</small>
-					   </div>
-				  </a>
-				  
-				    <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
-				    <div class="d-flex w-100 justify-content-between">
-				      <span style="width: 100px;">이더리움클래식 </span>
-				      <strong  style="text-align: right;">3900</strong>
-				      <h5 class="mb-1 text-danger">-0.42% </h5>
-				    </div>
-				  
-					  <div class="d-flex w-100 justify-content-between">
-					  	
-					  	<small class="text-secondary">KRW-XRP</small>
-					    <small>-125,000</small>
-					   </div>
-				  </a>
-				  <a href="#" class="list-group-item d-flex flex-row justify-content-between">
-				    	 <div class="item">Item1</div>
-						    <div class="item"><strong >39,840,000</strong></div>
-						    <div class="item">Item4</div>
-				  </a>
-				    <a href="#" class="list-group-item d-flex flex-row justify-content-between">
-				    	 <div class="item">이더리움클래식</div>
-						    <div class="item"><strong>300</strong></div>
-						    <div class="item">Item4</div>
-				  </a>
-				  <a href="#" class="list-group-item list-group-item-action flex-column align-items-start active">
-				    <div class="d-flex w-100 justify-content-between">
-				      <h5 class="mb-1">List group item heading</h5>
-				      <small class="text-muted">3 days ago</small>
-				    </div>
-				    <p class="mb-1">Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit.</p>
-				    <small class="text-muted">Donec id elit non mi porta.</small>
-				  </a>
-				
-	
 	</div>
 	
-	<!-- Container (Services Section) -->
-<div id="services" class="container-fluid text-center">
-  <h2>SERVICES</h2>
-  <h4>What we offer</h4>
-  <br>
-  <div class="row slideanim">
-    <div class="col-sm-4">
-      <span class="glyphicon glyphicon-off logo-small"></span>
-      <h4>POWER</h4>
-      <p>Lorem ipsum dolor sit amet..</p>
-    </div>
-    <div class="col-sm-4">
-      <span class="glyphicon glyphicon-heart logo-small"></span>
-      <h4>LOVE</h4>
-      <p>Lorem ipsum dolor sit amet..</p>
-    </div>
-    <div class="col-sm-4">
-      <span class="glyphicon glyphicon-lock logo-small"></span>
-      <h4>JOB DONE</h4>
-      <p>Lorem ipsum dolor sit amet..</p>
-    </div>
-  </div>
-  <br><br>
-  <div class="row slideanim">
-    <div class="col-sm-4">
-      <span class="glyphicon glyphicon-leaf logo-small"></span>
-      <h4>GREEN</h4>
-      <p>Lorem ipsum dolor sit amet..</p>
-    </div>
-    <div class="col-sm-4">
-      <span class="glyphicon glyphicon-certificate logo-small"></span>
-      <h4>CERTIFIED</h4>
-      <p>Lorem ipsum dolor sit amet..</p>
-    </div>
-    <div class="col-sm-4">
-      <span class="glyphicon glyphicon-wrench logo-small"></span>
-      <h4 style="color:#303030;">HARD WORK</h4>
-      <p>Lorem ipsum dolor sit amet..</p>
-    </div>
-  </div>
-</div>
-	
-	
-	
-	
-	<div>
-							
-		
-		<script>
-	
-		</script>
-	
-	</div>
 </div>
 	<!-- Tail Column -->
  <%@ include file="tail.jsp" %>

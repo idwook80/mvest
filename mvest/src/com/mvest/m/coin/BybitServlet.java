@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 
 import com.mvest.m.coin.action.BinanceTestAction;
+import com.mvest.m.coin.action.BybitOrdersAction;
 import com.mvest.m.coin.action.BybitTestAction;
 import com.mvest.model.ServletModel;
 
@@ -19,7 +20,8 @@ import com.mvest.model.ServletModel;
  */
 @WebServlet({
 	"/bybit/test",
-	"/bybit/price"
+	"/bybit/price",
+	"/bybit/orders"
 })
 public class BybitServlet extends ServletModel {
 	private static final long serialVersionUID = 1L;
@@ -55,6 +57,7 @@ public class BybitServlet extends ServletModel {
 		switch(COMMAND){
 		case "test" 			:  testAction(request,response); break;
 		case "price"			:  priceAction(request,response); break;
+		case "orders"			:  getOrdersAction(request,response); break;
 		/*case "list/all"		:  listAllAction(request,response); break;
 		case "search"			:  selectAction(request, response); break;
 		case "add" 				:  insertAction(request, response); break;
@@ -63,7 +66,6 @@ public class BybitServlet extends ServletModel {
 		}
 	}
 	
-	
 	public void testAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		BybitTestAction action = new BybitTestAction();
 		action.execute(request, response);
@@ -71,7 +73,10 @@ public class BybitServlet extends ServletModel {
 	public void priceAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		BinanceTestAction action = new BinanceTestAction();
 		action.execute(request, response);
-		
+	}
+	public void getOrdersAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		BybitOrdersAction action = new BybitOrdersAction();
+		action.execute(request, response);
 	}
 	
 	/*public void listAllAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

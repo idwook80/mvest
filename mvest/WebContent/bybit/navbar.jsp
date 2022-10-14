@@ -16,7 +16,7 @@
                     </a>
                     <div class="dropdown-menu" aria-labelledby="product-sub">
                         <a class="dropdown-item" href="../bybit/balance.jsp">잔고</a>
-                        <a class="dropdown-item" href="../company/list.jsp">Company</a>
+                        <a class="dropdown-item" href="../bybit/orders.jsp">주문</a>
                         <a class="dropdown-item" href="#">Account</a>
                     </div>
                 </li>
