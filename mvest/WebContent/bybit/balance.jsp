@@ -410,7 +410,7 @@ function bybitTag(key, value){
 	<div class="row">
 		<div class="col-sm-8  text-left">
 			<span  class="text-dark" style="font-size:20px;font-weight:bold;;">
-			<i class="fab fa-bitcoin text-warning"></i><span style="padding-left:5px;">버전 종합 정보 	<strong id="today_date" style="font-size:10px;">0000-00-00</strong></span> 
+			<i class="fab fa-bitcoin text-warning"></i><span style="padding-left:5px;">버전 잔고 <strong id="today_date" style="font-size:10px;">0000-00-00</strong></span> 
 			</span><br>
 				<span style="font-size:12px;">
 				현재가 : <span class="current_price"><i class="fas fa-arrow-up text-danger"></i><span>00000</span></span>
@@ -469,8 +469,6 @@ function bybitTag(key, value){
 		<div class="row">
 				<div class="container-fluid">
 				 <div class="row">
-				  <!-- Right Column -->
-				     	 <%-- <%@ include file="right.jsp" %>  --%>
 				    <div class="col-sm-12">
 				  		<div class="row">
 			  					<ul class="list-group col-sm-12">
@@ -506,42 +504,29 @@ function bybitTag(key, value){
 		<hr>
 	<div class="col-sm-12">
 		<div class="row">
-				<div class="container-fluid">
-				 <div class="row">
-				  <!-- Right Column -->
-				     	 <%-- <%@ include file="right.jsp" %>  --%>
-				    <div class="col-sm-12">
-				  		<div class="row">
-			  					<ul class="list-group col-sm-12">
-	  					
-									  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
-										 <span><strong>자동버전</strong></span>
-										 <span class="text-right">
-										 
-										 	 <span class="btn btn-success" style='line-height:80%'>
-										 	 	<span style="font-size:12px;">19,105.0</span><br> 
-										 	 	<span style="font-size:8px;">112.005</span>
-										 	 </span>
-										 	 
-										 	  <span class="btn btn-danger" style='line-height:80%'>
-										 	 	<span style="font-size:12px;">19,105.0</span><br> 
-										 	 	<span style="font-size:8px;">-112.005</span>
-										 	 </span>
-										 </span>
-									
-	  								 </li>
-								  <div class="bybit-area-three" style="display:">
-			  					  </div>
-							 	</ul>
-				  			 
-				  		</div>
-				     
-					</div>
-					  <!-- Right Column -->
-							<%--  <%@ include file="right.jsp" %>  --%>
-					  <!-- Right Column -->
-				   </div>
-				</div>
+  					<ul class="list-group col-sm-12">
+					
+						  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
+							 <span><strong>자동버전</strong></span>
+							 <span class="text-right">
+							 
+							 	 <span class="btn btn-success" style='line-height:80%'>
+							 	 	<span style="font-size:12px;">19,105.0</span><br> 
+							 	 	<span style="font-size:8px;">112.005</span>
+							 	 </span>
+							 	 
+							 	  <span class="btn btn-danger" style='line-height:80%'>
+							 	 	<span style="font-size:12px;">19,105.0</span><br> 
+							 	 	<span style="font-size:8px;">-112.005</span>
+							 	 </span>
+							 </span>
+						
+								 </li>
+					  <div class="bybit-area-three" style="display:">
+  					  </div>
+				 	</ul>
+			  			 
+			     
 		</div>
 	</div>
 	<hr>

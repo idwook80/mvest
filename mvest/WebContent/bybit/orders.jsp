@@ -54,12 +54,14 @@ var today_date = '<%=tDate %>';
 var count = 0;
 var coins = [];
 var market_code ="";
+var current_price= 0;
 
 $(function(){
 	$("#input-form-today #to_date").val(today_date);
 /* 	$("#today_date").text(today_date); */
 	marketAll();
 	getLoadOrders();
+	loadBalances();
 	getTime();
 	setInterval(function() {
 		loadBalances();
@@ -231,8 +233,6 @@ function getItemTag(item){
 	 		chagne = "";
 	 	 }
 	 	 
-	 	 
-	 	 
 	 	 tag.append("<div><li class=\"list-group-item d-flex justify-content-between align-items-center\">");
 		 tag.append("<span>" + korean_name + "<br>"+ item.market+ "</span>");
 		 tag.append("<span class=\""+color+"\">" + item.trade_price.toLocaleString() + "</span>");
@@ -292,9 +292,17 @@ function updateOrders(orders){
 		return  b.price- a.price;
 	});
 	$(".orders-area").html('');
+	
    	 for(var i=0; i<sortOrders.length; i++){
 			var order = sortOrders[i];
 			$(".orders-area").append(getOrderTag(order));
+			if(i < sortOrders.length - 1 && current_price > 0){
+				var o2 = sortOrders[i+1];
+				if(order.price > current_price && o2.price < current_price){
+					$(".orders-area").append(getCurrentTag(current_price, order.price, o2.price));
+				}
+			}
+		
    	 }
    	
 }
@@ -347,7 +355,9 @@ function getOrderTag(o){
 	var position	= getPosition(side, reduce_only);
 	var is_open		= getOpenClose(side, reduce_only);
 	var color 		= (position == 'Open Long' || position == 'Close Short') ? "success" : "danger"; 
-	console.log(position_id);
+	 		//color += (position == '' || position == 'Close Short') ? " text-danger" : " ";
+	 		//color += (position == '' || position == 'Close Long') ? " text-success" : " ";
+	 var tcolor = position_id == 1  ? "badge badge-success" : "badge badge-danger";
 	if(position_id != p_id){
 	 var tag 	= new StringBuffer();
 		 tag.append(" <a href=\"#\" class=\"list-group-item list-group-item-action flex-column align-items-start\">");
@@ -358,17 +368,29 @@ function getOrderTag(o){
 		/*  tag.append("  <small class=\"btn btn-secondary\">취소</small>"); */
 		 tag.append("   </div>");
 	  
-	     tag.append(" <div class=\"d-flex w-100 justify-content-between\">");
-		 tag.append(" 	<small class=\"text-secondary\">"+(is_open ? "Open" : "Close")+"</small>");
+	     /* tag.append(" <div class=\"d-flex w-100 justify-content-between\">");
+		 tag.append(" 	<small class=\""+tcolor+"\">"+(is_open ? "Open" : "Close")+"</small>");
 		 tag.append("   <small>"+qty+"</small>");
 		 tag.append("   <small>-125,000</small>");
-		 tag.append("  </div>"); 
+		 tag.append("  </div>");  */
 		 tag.append(" </a>");
 		return tag.toString();
 	}
 	return "";
 }
+function getCurrentTag(price, o1, o2){
+	 var tag 	= new StringBuffer();
+	 tag.append(" <a href=\"#\" class=\"list-group-item list-group-item-action flex-column align-items-start\">");
+	 tag.append("  <div class=\"d-flex w-100 justify-content-between bg-warning\">");
+	 tag.append("  <strong class=\"mb-1 text-left\" > "+comma(o1)+"</strong><small> (+"+ comma(o1-price)+")</small>");
+	 tag.append("  <strong style=\"\">"+comma(price)+"</strong>");
+	 tag.append("   <small> (-"+ comma(price-o2)+")</small> <strong class=\"mb-1 text-right\" > "+comma(o2)+"</strong>");
+	 tag.append("   </div>");
+  
+	return tag.toString();
+}
 function bybit(user){
+	
 	var param 		= $("#pageForm").serialize();
 		param 		+= "&user=" + user;
 	var REQ_TYPE 	= "get";
@@ -405,6 +427,7 @@ function bybitKline_1(kline_1){
 	var open_price 	= kline_1.open;
 	var close_price = kline_1.close;
 	var volume = kline_1.volume;
+	current_price = close_price;
 	
 	if(close_price < open_price){
 		$(".current_price").html("<i class=\"fas fa-arrow-down text-danger\"></i><span class=\"text-danger\"> "+comma(close_price.toFixed(1))+"</span>");
@@ -420,6 +443,7 @@ function bybitKline_1(kline_1){
 	$(".current_price").fadeIn("slow");
 	$(".current_volume").fadeOut();
 	$(".current_volume").fadeIn("slow");
+	setReloadOrder(p_id);
 	
 
 }
@@ -452,6 +476,7 @@ function bybitPositions(user, positions){
 			$("."+user+"-size-" + position).fadeOut(100, function(){
 				$(this).fadeIn(2000);
 			}); 
+			getLoadOrders();
 		}
 	}
 	setPositions(positions);
@@ -585,24 +610,32 @@ function bybitTag(key, value){
 		</div>
 	</div>
 	 
-	</div>
 	<hr>
-	<div class="list-group col-sm-12 orders-area">
-				
-	  <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
-	    <div class="d-flex w-100 justify-content-between">
-	      <h5 class="mb-1" style="width: 100px;">Binance </h5>
-	      <strong style="text-align: right;" class="binance-price">39,840,000</strong>
-	      <h5 class="mb-1 text-danger">-0.42% </h5>
+	<div class="container-fluid">
+	<div class="row">
+	   <div class="col-sm-12">
+  		<div class="row">
+			<div class="list-group col-sm-12 orders-area">
+			  <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+			    <div class="d-flex w-100 justify-content-between">
+			      <h5 class="mb-1" style="width: 100px;">Binance </h5>
+			      <strong style="text-align: right;" class="binance-price">39,840,000</strong>
+			      <h5 class="mb-1 text-danger">-0.42% </h5>
+			    </div>
+			  
+				  <div class="d-flex w-100 justify-content-between">
+				  	<small class="text-secondary">KRW-XRP</small>
+				    <small>-125,000</small>
+				   </div>
+			  </a>
+						  
+			</div>
+  			 
+  		</div>
 	    </div>
-	  
-		  <div class="d-flex w-100 justify-content-between">
-		  	<small class="text-secondary">KRW-XRP</small>
-		    <small>-125,000</small>
-		   </div>
-	  </a>
-				  
 	</div>
+	</div>
+
 	
 </div>
 	<!-- Tail Column -->

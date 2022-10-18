@@ -1,11 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <nav class="navbar navbar-expand-md bg-dark navbar-dark">
-  <a class="navbar-brand" href="#">바이비트 예약 자동화</a>
+  <a class="navbar-brand" href="#">Coin Alarm Order System</a>
   <div class="collapse navbar-collapse" id="collapsibleNavbar">
    <ul class="nav navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Home</a>
+                    <a class="nav-link" href="../index.jsp">Home</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">About</a>
@@ -15,8 +15,8 @@
                     Products
                     </a>
                     <div class="dropdown-menu" aria-labelledby="product-sub">
-                        <a class="dropdown-item" href="../bybit/balance.jsp">잔고</a>
-                        <a class="dropdown-item" href="../bybit/orders.jsp">주문</a>
+                        <a class="dropdown-item" href="../bybit/balance.jsp">Balance</a>
+                        <a class="dropdown-item" href="../bybit/orders.jsp">Order</a>
                         <a class="dropdown-item" href="#">Account</a>
                     </div>
                 </li>
@@ -28,6 +28,16 @@
                         <a class="dropdown-item" href="#">Engage</a>
                         <a class="dropdown-item" href="#">Pontificate</a>
                         <a class="dropdown-item" href="#">Synergize</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="product-sub" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                 		  Coin
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="product-sub">
+                        <a class="dropdown-item" href="../bybit/index.jsp">Summary</a>
+                        <a class="dropdown-item" href="../bybit/orders.jsp">Orders</a>
+                        <a class="dropdown-item" href="../bybit/balance.jsp">Balances</a>
                     </div>
                 </li>
             </ul>
