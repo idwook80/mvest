@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 
 import com.mvest.m.coin.action.BinanceTestAction;
+import com.mvest.m.coin.action.BybitBalancesAction;
+import com.mvest.m.coin.action.BybitOrderCancelAction;
 import com.mvest.m.coin.action.BybitOrdersAction;
 import com.mvest.m.coin.action.BybitTestAction;
 import com.mvest.model.ServletModel;
@@ -21,7 +23,9 @@ import com.mvest.model.ServletModel;
 @WebServlet({
 	"/bybit/test",
 	"/bybit/price",
-	"/bybit/orders"
+	"/bybit/orders",
+	"/bybit/order/cancel",
+	"/bybit/balances"
 })
 public class BybitServlet extends ServletModel {
 	private static final long serialVersionUID = 1L;
@@ -58,6 +62,8 @@ public class BybitServlet extends ServletModel {
 		case "test" 			:  testAction(request,response); break;
 		case "price"			:  priceAction(request,response); break;
 		case "orders"			:  getOrdersAction(request,response); break;
+		case "balances"			:  getBalancesAction(request, response); break;
+		case "order/cancel"		:  cancelOrderAction(request, response); break;
 		/*case "list/all"		:  listAllAction(request,response); break;
 		case "search"			:  selectAction(request, response); break;
 		case "add" 				:  insertAction(request, response); break;
@@ -78,7 +84,14 @@ public class BybitServlet extends ServletModel {
 		BybitOrdersAction action = new BybitOrdersAction();
 		action.execute(request, response);
 	}
-	
+	public void getBalancesAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		BybitBalancesAction action = new BybitBalancesAction();
+		action.execute(request, response);
+	}
+	public void cancelOrderAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		BybitOrderCancelAction action = new BybitOrderCancelAction();
+		action.execute(request, response);
+	}
 	/*public void listAllAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		SiteListAllAction action = new SiteListAllAction();
 		action.execute(request, response);

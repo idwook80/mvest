@@ -86,7 +86,25 @@ public class OrderRest {
 	        }
 	        
 	    }
-	    
+	    public static String cancelOrder (String api_key,String api_secret,String symbol,String order_id) throws NoSuchAlgorithmException, InvalidKeyException {
+	    	String url = bybit_url + "/private/linear/order/cancel";
+	        Map<String, Object> map = new TreeMap<>(new Comparator<String>() {
+	            @Override
+	            public int compare(String s1, String s2) {
+	                return s1.compareTo(s2);
+	            }
+	        });
+	        String tt = Long.toString(ZonedDateTime.now().toInstant().toEpochMilli());
+	        map.put("api_key", api_key);
+	        map.put("timestamp", tt);
+	        map.put("order_id", order_id);
+	        map.put("symbol", symbol);
+	        String signature = BybitClient.genSign(api_secret,map);
+	        map.put("sign", signature);
+	        
+	        String response = BybitClient.post(url, map);
+	        return response;
+	    }
 	    public static double parsing(String str) {
 	    	JsonParser parser = new JsonParser();
 	        JsonElement el =  parser.parse(str);

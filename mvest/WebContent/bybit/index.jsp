@@ -32,6 +32,8 @@
 	paramMap.put("keyword", "");
 	paramMap.put("sort", "");
 	paramMap.put("order", "");
+	String user_id = request.getParameter("id") != null ? (String)request.getParameter("id") : "idwook80";
+	
 	
 
 %>
@@ -55,6 +57,7 @@ var count = 0;
 var coins = [];
 var market_code ="";
 var current_price= 0;
+var user_id = '<%=user_id %>';
 
 $(function(){
 	$("#input-form-today #to_date").val(today_date);
@@ -68,6 +71,13 @@ $(function(){
 		getTime();
 	}, 1000);
 	getLoadOrders();
+	
+	$("#user_selector").change(function(){
+		//alert($(this).val());
+		alert($(this).children("option:selected").text());
+		user_id = $(this).val();
+		getLoadOrders();
+	});
 });
 function getTime(){
 	var today = new Date();   
@@ -171,7 +181,7 @@ function getPosition(side, reduce){
 }
 function getLoadOrders(){
 	p_id = 0;
-	getOrders('idwook80',1,50);
+	getOrders(user_id,1,50);
 }
 function setReloadOrder(pid){
 	p_id =pid;
@@ -192,8 +202,6 @@ function getOrderTag(o){
 	var position	= getPosition(side, reduce_only);
 	var is_open		= getOpenClose(side, reduce_only);
 	var color 		= (position == 'Open Long' || position == 'Close Short') ? "success" : "danger"; 
-	 		//color += (position == '' || position == 'Close Short') ? " text-danger" : " ";
-	 		//color += (position == '' || position == 'Close Long') ? " text-success" : " ";
 	 var tcolor = position_id == 1  ? "badge badge-success" : "badge badge-danger";
 	if(position_id != p_id){
 	 var tag 	= new StringBuffer();
@@ -220,7 +228,33 @@ function del_order(order_id){
 	if(order_id == null) return;
 	var is_yes = confirm("Do you want to cancel?");
 	if(!is_yes) return;
-	alert(order_id);
+	var param 		= $("#pageForm").serialize();
+	param 		+= "&user=" + user_id + "&order_id="+order_id + "&symbol=BTCUSDT";
+	
+	var REQ_TYPE 	= "post";
+	var REQ_URL  	= "../bybit/order/cancel";
+	$.ajax({
+		type		: REQ_TYPE,
+		url			: REQ_URL,
+		data		: param,
+		dataType	: "json", 
+		async		: true,
+		beforeSend	: function(){/*  loadingShow(); */ },
+		success		: function(res){
+					/* loadingHide(); */
+					var str 		= JSON.stringify(res,null,2);
+					console.log(str);
+					var result 		= res.result;
+					getLoadOrders();
+					if(status <= 100){
+					}else {
+						ajaxLoadFail(result);
+					}
+		},
+		error		: function() {
+					ajaxError();
+		}
+	});
 }
 
 function getCurrentTag(price, o1, o2){
@@ -503,7 +537,20 @@ function bybitTag(key, value){
 				<div class="container-fluid">
 				 <div class="row">
 				  <!-- Right Column -->
-				     	 <%-- <%@ include file="right.jsp" %>  --%>
+				    <div class="col-sm-12  text-left">
+						 <form>
+						  <div class="input-group mb-3">
+						    <div class="input-group-prepend">
+						      <span class="input-group-text">모드</span>
+						    </div>
+						      <select class="form-control" id="user_selector" name="user_selector">
+						        <option value="idwook80" selected>모드80</option>
+						        <option value="idwook01">모드01</option>
+						        <option value="idwook02">모드02</option>
+						      </select>
+						  </div>
+						</form>
+					</div>
 				    <div class="col-sm-12">
 				  		<div class="row">
 				  				
@@ -540,30 +587,6 @@ function bybitTag(key, value){
 				</div>
 		</div>
 	</div>
-	<!-- <div class="container-fluid">
-	<div class="row">
-	   <div class="col-sm-12">
-  		<div class="row">
-			<div class="list-group col-sm-12 orders-area">
-			  <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
-			    <div class="d-flex w-100 justify-content-between">
-			      <h5 class="mb-1" style="width: 100px;">Binance </h5>
-			      <strong style="text-align: right;" class="binance-price">39,840,000</strong>
-			      <h5 class="mb-1 text-danger">-0.42% </h5>
-			    </div>
-			  
-				  <div class="d-flex w-100 justify-content-between">
-				  	<small class="text-secondary">KRW-XRP</small>
-				    <small>-125,000</small>
-				   </div>
-			  </a>
-						  
-			</div>
-  			 
-  		</div>
-	    </div>
-	</div>
-	</div> -->
 
 	
 </div>

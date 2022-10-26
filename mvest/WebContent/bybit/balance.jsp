@@ -58,10 +58,12 @@ $(function(){
 	$("#input-form-today #to_date").val(today_date);
 /* 	$("#today_date").text(today_date); */
 	marketAll();
+	getBalances();
 	loadBalances();
 	getTime();
 	setInterval(function() {
-		loadBalances();
+		//loadBalances();
+		getBalances();
 	}, 1000*10);
 	setInterval(function() {
 		getTime();
@@ -250,6 +252,88 @@ function getBinanceTag(str){
 	 
  	return tag.toString();
 }
+function getBalances(){
+	var param 		= $("#pageForm").serialize();
+	var REQ_TYPE 	= "get";
+	var REQ_URL  	= "../bybit/balances";
+	$.ajax({
+		type		: REQ_TYPE,
+		url			: REQ_URL,
+		data		: param,
+		dataType	: "json", 
+		async		: true,
+		beforeSend	: function(){/*  loadingShow(); */ },
+		success		: function(res){
+					/* loadingHide(); */
+					var str 		= JSON.stringify(res,null,2);
+					//console.log(str);
+					var result 		= res.result;
+					var balances	 = res.balances;
+					updateBalances(balances);
+					if(status <= 100){
+					}else {
+						ajaxLoadFail(result);
+					}
+		},
+		error		: function() {
+					ajaxError();
+		}
+	});
+}
+function updateBalances(balances){
+	console.log(balances);
+	$(".balances-area").html('');
+	for(var i=0; i<balances.length; i++){
+		var balance = balances[i];
+		$(".balances-area").append(getBalanceTag(balance));
+	}
+	for(var i=0; i<balances.length; i++){
+		var b = balances[i];
+		var className = ".bybit-area-"+b.id;
+		$(className).fadeOut();
+		$(className).fadeIn("slow");
+	}
+}
+function getBalanceTag(b){
+	var positions = b.positions;
+	var usdt	  = b.balance.result.USDT;
+	
+	var tag 	= new StringBuffer();
+	//tag.append("<div class=\"row\">");
+	tag.append("<ul class=\"list-group col-sm-4\">");
+	tag.append("<li class=\"list-group-item d-flex justify-content-between align-items-center bg-secondary text-light\">");
+	tag.append(" <span><strong>" + b.user_name +"</strong></span>");
+	tag.append(" <span class=\"text-right\">");
+		 
+	tag.append(getPositionTag(positions));
+	tag.append(" </span>");
+	
+	tag.append("	 </li>");
+	tag.append("<div class=\"bybit-area-"+b.id+"\" style=\"display:\"> ");
+	
+	tag.append(getBybitBalanceTag(usdt));
+	
+	tag.append("	</div></ul>");
+	//tag.append("</div>");
+	return tag.toString();
+}
+function getPositionTag(positions){
+	var buy = positions.result[0];
+	var sell = positions.result[1];
+	/* $("."+user+"-entry-price-" + position).text(comma(entry_price.toFixed(1)));
+	$("."+user+"-size-" + position).text(size.toFixed(3) +'(' +size2.toFixed(1) + ")"); */
+	var tag 	= new StringBuffer();
+	tag.append("	 	 <span class=\"btn btn-success\" style='line-height:80%'>");
+	tag.append("	 	 	<span style=\"font-size:12px;\">"+comma(buy.entry_price.toFixed(1))+"</span><br>");
+	tag.append("	 	 	<span style=\"font-size:8px;\">"+buy.size+"</span>");
+	tag.append("	 	 </span>");
+		 	 
+	tag.append(" 	  <span class=\"btn btn-danger\" style='line-height:80%'>");
+	tag.append("	 	 	<span style=\"font-size:12px;\">"+comma(sell.entry_price.toFixed(1))+"</span><br> ");
+	tag.append("	 	 	<span style=\"font-size:8px;\">-"+sell.size+"</span>");
+	tag.append("	 	 </span>");
+	return tag.toString();
+}
 function bybit(user){
 	var param 		= $("#pageForm").serialize();
 		param 		+= "&user=" + user;
@@ -362,10 +446,12 @@ function bybitBalanceSet(user, usdt){
 	var className = ".bybit-area-"+user
 	var count = 0;
 	$(className).html('');
-	$(className).append(bybitTag("실현잔고", usdt.wallet_balance.toFixed(2)) );
-	$(className).append(bybitTag("실현금액", usdt.realised_pnl.toFixed(2)) );
-	$(className).append(bybitTag("미실현액", usdt.unrealised_pnl.toFixed(2)) );
-	$(className).append(bybitTag("예상잔고", usdt.equity.toFixed(2)) );
+	$(className).append(bybitTag("예상 ", usdt.equity.toFixed(2)) );
+	$(className).append(bybitTag("미실현", usdt.unrealised_pnl.toFixed(2)) );
+	$(className).append(bybitTag("실현 ", usdt.realised_pnl.toFixed(2)) );
+	$(className).append(bybitTag("잔고 ", usdt.wallet_balance.toFixed(2)) );
+	
+	
 	/* $(className).append(bybitTag("이용가능",usdt.available_balance.toFixed(2)) ); */
 	/* $(".bybit-area").append(bybitTag("used_margin",usdt.used_margin.toFixed(2)));
 	$(".bybit-area").append(bybitTag("order_margin",usdt.order_margin.toFixed(2)));
@@ -380,9 +466,30 @@ function bybitBalanceSet(user, usdt){
 	/* $(className + " .p-value").slideUp(500,function(){
 		$(this).slideDown(1000);
 	}); */
+}
+function getBybitBalanceTag(usdt){
+	 var tag 	= new StringBuffer();
+	 tag.append(bybitTag("예  상", usdt.equity.toFixed(2)) );
+	 tag.append(bybitTag("미실현", usdt.unrealised_pnl.toFixed(2)) );
+
+	 tag.append(bybitTag("실  현", usdt.realised_pnl.toFixed(2)) );
+	 tag.append(bybitTag("잔  고", usdt.wallet_balance.toFixed(2)) );
 	
+	/* $(className).append(bybitTag("이용가능",usdt.available_balance.toFixed(2)) ); */
+	/* $(".bybit-area").append(bybitTag("used_margin",usdt.used_margin.toFixed(2)));
+	$(".bybit-area").append(bybitTag("order_margin",usdt.order_margin.toFixed(2)));
+	$(".bybit-area").append(bybitTag("position_margin",usdt.position_margin.toFixed(2)));
+	$(".bybit-area").append(bybitTag("occ_closing_fee",usdt.occ_closing_fee.toFixed(2)));
+	$(".bybit-area").append(bybitTag("occ_funding_fee",usdt.occ_funding_fee.toFixed(2)));
 	
+	$(".bybit-area").append(bybitTag("cum_realised_pnl",usdt.cum_realised_pnl.toFixed(2)));
+	$(".bybit-area").append(bybitTag("given_cash",usdt.given_cash.toFixed(2)));
+	$(".bybit-area").append(bybitTag("service_cash",usdt.service_cash.toFixed(2))); */
 	
+	/* $(className + " .p-value").slideUp(500,function(){
+		$(this).slideDown(1000);
+	}); */
+	return tag.toString();
 }
 var wondollor = 140;
 function bybitTag(key, value){
@@ -502,32 +609,53 @@ function bybitTag(key, value){
 		</div>
 	</div>
 		<hr>
-	<div class="col-sm-12">
-		<div class="row">
-  					<ul class="list-group col-sm-12">
-					
-						  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
-							 <span><strong>자동버전</strong></span>
-							 <span class="text-right">
-							 
-							 	 <span class="btn btn-success" style='line-height:80%'>
-							 	 	<span style="font-size:12px;">19,105.0</span><br> 
-							 	 	<span style="font-size:8px;">112.005</span>
-							 	 </span>
-							 	 
-							 	  <span class="btn btn-danger" style='line-height:80%'>
-							 	 	<span style="font-size:12px;">19,105.0</span><br> 
-							 	 	<span style="font-size:8px;">-112.005</span>
-							 	 </span>
-							 </span>
-						
-								 </li>
-					  <div class="bybit-area-three" style="display:">
-  					  </div>
-				 	</ul>
-			  			 
-			     
+	<div class="col-sm-12 " >
+		<div class="row balances-area">
+			<ul class="list-group col-sm-12">
+			  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
+				 <span><strong>자동버전</strong></span>
+				 <span class="text-right">
+				 
+				 	 <span class="btn btn-success" style='line-height:80%'>
+				 	 	<span style="font-size:12px;">19,105.0</span><br> 
+				 	 	<span style="font-size:8px;">112.005</span>
+				 	 </span>
+				 	 
+				 	  <span class="btn btn-danger" style='line-height:80%'>
+				 	 	<span style="font-size:12px;">19,105.0</span><br> 
+				 	 	<span style="font-size:8px;">-112.005</span>
+				 	 </span>
+				 </span>
+			
+					 </li>
+		  		<div class="bybit-area-three" style="display:"> </div>
+	 		</ul>	
 		</div>
+		<hr>
+		
+		
+		<div class="row">
+			<ul class="list-group col-sm-12">
+			  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
+				 <span><strong>자동버전</strong></span>
+				 <span class="text-right">
+				 
+				 	 <span class="btn btn-success" style='line-height:80%'>
+				 	 	<span style="font-size:12px;">19,105.0</span><br> 
+				 	 	<span style="font-size:8px;">112.005</span>
+				 	 </span>
+				 	 
+				 	  <span class="btn btn-danger" style='line-height:80%'>
+				 	 	<span style="font-size:12px;">19,105.0</span><br> 
+				 	 	<span style="font-size:8px;">-112.005</span>
+				 	 </span>
+				 </span>
+			
+					 </li>
+		  		<div class="bybit-area-three" style="display:"> </div>
+	 		</ul>	
+		</div>
+		
 	</div>
 	<hr>
 	<div class="list-group col-sm-12 ">

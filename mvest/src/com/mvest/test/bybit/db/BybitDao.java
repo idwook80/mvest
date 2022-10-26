@@ -29,6 +29,7 @@ public class BybitDao implements DaoModel {
 	public int delete(Object o) throws Exception{
 		return 0;
 	}
+	
 	public Object select(String id) throws Exception{
 		//BotConfig config = new BotConfig();
 		WebDBManager mgr = WebDBManager.getInstance();
