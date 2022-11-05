@@ -36,7 +36,11 @@ public class BybitBalancesAction extends ActionModel {
 		String id		= getParameter("id");
 	 
 		try {
-			List<BybitWebUser> users = (List) BybitWebUserDao.getInstace().getList(0,100);
+			List<BybitWebUser> users = new ArrayList();
+			
+			if(isNotNull(id)) where = " id = '"+id +"'";
+			users = (List) BybitWebUserDao.getInstace().getList(0,100,where, null);
+			
 			for(int i=0; i<users.size(); i++) {
 				BybitWebUser user = users.get(i);
 				try {

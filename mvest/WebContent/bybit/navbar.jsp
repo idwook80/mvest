@@ -37,7 +37,8 @@
                     <div class="dropdown-menu" aria-labelledby="product-sub">
                         <a class="dropdown-item" href="../bybit/index.jsp">Summary</a>
                         <a class="dropdown-item" href="../bybit/orders.jsp">Orders</a>
-                        <a class="dropdown-item" href="../bybit/balance.jsp">Balances</a>
+                        <a class="dropdown-item" href="../bybit/balance.jsp">Balance</a>
+                        <a class="dropdown-item" href="../bybit/balances.jsp">Balances</a>
                     </div>
                 </li>
             </ul>

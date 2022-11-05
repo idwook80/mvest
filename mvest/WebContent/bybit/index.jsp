@@ -97,7 +97,7 @@ function getTimeFormat(time){
 	return time < 10 ? "0" + time : ""+time;
 }
 function loadBalances(){
-	bybit('main');
+	bybit('idwook80');
 
 }
  
@@ -121,6 +121,7 @@ function getOrders(id,bpage,blimit){
 					var orders 		= res.orders.result.data;
 					//console.log(orders);
 					updateOrders(orders);
+					setReloadOrder(p_id);
 					
 					if(status <= 100){
 					}else {
@@ -180,7 +181,7 @@ function getPosition(side, reduce){
 	}
 }
 function getLoadOrders(){
-	p_id = 0;
+	//p_id = 0;
 	getOrders(user_id,1,50);
 }
 function setReloadOrder(pid){
@@ -271,7 +272,7 @@ function getCurrentTag(price, o1, o2){
 function bybit(user){
 	
 	var param 		= $("#pageForm").serialize();
-		param 		+= "&user=" + user;
+		param 		+= "&id=" + user;
 	var REQ_TYPE 	= "get";
 	var REQ_URL  	= "../bybit/test";
 	$.ajax({
@@ -343,7 +344,7 @@ function bybitPositions(user, positions){
 			size = size*-1;
 		}
 		
-		var size2 = (size / (user == 'main' ? 0.15 : 0.001)) / 10;
+		var size2 = (size / (user == 'idwook80' ? 0.15 : 0.001)) / 10;
 		$("."+user+"-entry-price-" + position).text(comma(entry_price.toFixed(1)));
 		$("."+user+"-size-" + position).text(size.toFixed(3) +'(' +size2.toFixed(1) + ")");
 		
@@ -359,7 +360,7 @@ function bybitPositions(user, positions){
 		}
 	}
 	setPositions(positions);
-	if(user == 'main') bybit('sub');
+	if(user == 'idwook80') bybit('idwook02');
 }
 function setPositions(positions){
 	var exists = false;
@@ -464,18 +465,18 @@ function bybitTag(key, value){
 											 <span><strong>예약버전</strong></span>
 											 <span class="text-right">
 											 	 <span class="btn btn-success" style='line-height:80%'>
-											 	 	<span class="main-entry-price-long" style="font-size:12px;">19,105.0</span><br> 
-											 	 	<span class="main-size-long" style="font-size:8px;">112.005</span>
+											 	 	<span class="idwook80-entry-price-long" style="font-size:12px;">19,105.0</span><br> 
+											 	 	<span class="idwook80-size-long" style="font-size:8px;">112.005</span>
 											 	 </span>
 											 	 
 											 	  <span class="btn btn-danger" style='line-height:80%'>
-											 	 	<span class="main-entry-price-short" style="font-size:12px;">19,105.0</span><br> 
-											 	 	<span class="main-size-short" style="font-size:8px;">-112.005</span>
+											 	 	<span class="idwook80-entry-price-short" style="font-size:12px;">19,105.0</span><br> 
+											 	 	<span class="idwook80-size-short" style="font-size:8px;">-112.005</span>
 											 	 </span>
 											 </span>
 										
 		  								 </li>
-										  <div class="bybit-area-main" style="display:">
+										  <div class="bybit-area-idwook80" style="display:">
 					  					  </div>
 								 	</ul>
 					  			 
@@ -503,18 +504,18 @@ function bybitTag(key, value){
 											 <span class="text-right">
 											 
 											 	 <span class="btn btn-success" style='line-height:80%'>
-											 	 	<span class="sub-entry-price-long" style="font-size:12px;">19,105.0</span><br> 
-											 	 	<span class="sub-size-long"  style="font-size:8px;">112.005</span>
+											 	 	<span class="idwook02-entry-price-long" style="font-size:12px;">19,105.0</span><br> 
+											 	 	<span class="idwook02-size-long"  style="font-size:8px;">112.005</span>
 											 	 </span>
 											 	 
 											 	  <span class="btn btn-danger" style='line-height:80%'>
-											 	 	<span class="sub-entry-price-short" style="font-size:12px;">19,105.0</span><br> 
-											 	 	<span class="sub-size-short" style="font-size:8px;">-112.005</span>
+											 	 	<span class="idwook02-entry-price-short" style="font-size:12px;">19,105.0</span><br> 
+											 	 	<span class="idwook02-size-short" style="font-size:8px;">-112.005</span>
 											 	 </span>
 											 </span>
 										
 		  								 </li>
-										  <div class="bybit-area-sub" style="display:">
+										  <div class="bybit-area-idwook02" style="display:">
 					  					  </div>
 								 	</ul>
 					  		</div>

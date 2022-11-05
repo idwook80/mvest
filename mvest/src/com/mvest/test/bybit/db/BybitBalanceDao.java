@@ -1,6 +1,7 @@
 package com.mvest.test.bybit.db;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -8,19 +9,27 @@ import com.mvest.db.QueryBuffer;
 import com.mvest.db.WebDBManager;
 import com.mvest.m.bank.Account;
 import com.mvest.model.DaoModel;
+import com.mvest.test.bybit.model.BybitBalance;
 import com.mvest.test.bybit.model.BybitWebUser;
 
-public class BybitWebUserDao implements DaoModel {
+public class BybitBalanceDao implements DaoModel {
 	public final static String DB			= "bybit";
-	public final static String TABLE		= "user";
-	public final static String[] COLUMNS  	= {"id", "password", "user_id", "api_key", "api_secret", "user_name","alarm_model","default_qty"};
+	public final static String TABLE		= "balance";
+	public final static String[] COLUMNS  	= {"id","symbol","equity",
+												"available_balance","cum_realised_pnl","given_cash",
+												"occ_closing_fee","occ_funding_fee",
+												"order_margin","position_margin","realised_pnl",
+												"service_cash","unrealised_pnl",
+												"used_margin","wallet_balance",
+												"reg_date","reg_datetime"};
+												
+												
+	public volatile static BybitBalanceDao instance;
 	
-	public volatile static BybitWebUserDao instance;
-	
-	public synchronized  static BybitWebUserDao getInstace(){
+	public synchronized  static BybitBalanceDao getInstace(){
 		if(instance == null){
-			synchronized(BybitWebUserDao.class){
-				instance = new BybitWebUserDao();
+			synchronized(BybitBalanceDao.class){
+				instance = new BybitBalanceDao();
 			}
 		}
 		return instance;
@@ -39,10 +48,10 @@ public class BybitWebUserDao implements DaoModel {
 		//BotConfig config = new BotConfig();
 		WebDBManager mgr = WebDBManager.getInstance();
 		StringBuffer queryBuffer = new StringBuffer();
-		queryBuffer.append("SELECT * from bybit.user A");
+		queryBuffer.append("SELECT * from "+DB + "."+ TABLE );
 
 		if(id != null) {
-			queryBuffer.append(" WHERE A.id = '"+ id +"'");
+			queryBuffer.append(" WHERE id = '"+ id +"'");
 		}
 		
 		return mgr.selectHashMap(queryBuffer.toString());
@@ -71,18 +80,18 @@ public class BybitWebUserDao implements DaoModel {
 		query.setSelect(COLUMNS);
 		if(where != null) query.setWhere(where);
 		if(orderby != null) query.setOrder(orderby);
-		//else query.setOrder("ac_id", "DESC");
+		else query.setOrder("reg_date", "DESC");
 		
 		query.setLimit(start, offset);
 		List<HashMap> list  = WebDBManager.getInstance().queryForList(query.getSelect());
 		if(list == null) return null;
 		
-		List<BybitWebUser> users = new ArrayList();
+		List<BybitBalance> balances = new ArrayList();
 		for(HashMap row : list){
-			BybitWebUser c = new BybitWebUser();
+			BybitBalance c = new BybitBalance();
 			query.setSelectObject(row, c);
-			users.add(c);
+			balances.add(c);
 		}
-		return users;
+		return balances;
 	}
 }

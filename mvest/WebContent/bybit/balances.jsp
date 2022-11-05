@@ -47,11 +47,14 @@ var wins;
 var today_date = '<%=tDate %>';
 var count = 0;
 var market_code ="";
+var user_id = "idwook80";
  
 $(function(){
 	$("#input-form-today #to_date").val(today_date);
 /* 	$("#today_date").text(today_date); */
 	getBalances();
+	getBalanceList();
+	
 	getTime();
 	setInterval(function() {
 		getBalances();
@@ -63,7 +66,7 @@ $(function(){
 		//alert($(this).val());
 		alert($(this).children("option:selected").text());
 		user_id = $(this).val();
-		//getLoadOrders();
+		getBalanceList();
 	});
 });
 function getTime(){
@@ -86,6 +89,7 @@ function getTimeFormat(time){
  
 function getBalances(){
 	var param 		= $("#pageForm").serialize();
+	param			+= "&id="+user_id;
 	var REQ_TYPE 	= "get";
 	var REQ_URL  	= "../bybit/balances";
 	$.ajax({
@@ -125,8 +129,8 @@ function updateBalances(balances){
 	for(var i=0; i<balances.length; i++){
 		var b = balances[i];
 		var className = ".bybit-area-"+b.id;
-		//$(className).fadeOut();
-		//$(className).fadeIn("slow");
+		$(className).fadeOut();
+		$(className).fadeIn("slow");
 	}
 }
 function getBalanceTag(b){
@@ -134,7 +138,7 @@ function getBalanceTag(b){
 	var usdt	  = b.balance.result.USDT;
 	
 	var tag 	= new StringBuffer();
-	tag.append("<ul class=\"list-group col-sm-4\" data-toggle=\"collapse\" data-target=\"#"+b.user_name+"\">");
+	tag.append("<ul class=\"list-group col-sm-12\" data-toggle=\"collapse\" data-target=\"#"+b.user_name+"\">");
 	tag.append("<li class=\"list-group-item d-flex justify-content-between align-items-center bg-secondary text-light\">");
 	tag.append(" <span><strong>" + b.user_name +"</strong></span>");
 	tag.append(" <span class=\"text-right\">");
@@ -233,12 +237,8 @@ function bybitTag(key, value){
 }
 
 function getBalanceList(){
-	
-	var id = $("#user_selector").val();
-
-	
 	var param 		= $("#pageForm").serialize();
-		param 		= "&id="+id;
+		param 		= "&id="+user_id;
 	var REQ_TYPE 	= "get";
 	var REQ_URL  	= "../bybit/balance/list";
 	$.ajax({
@@ -319,10 +319,7 @@ function getBalanceListTag(b,p){
 		</div>
  	</div>
  	<hr>
- 	<div class="row balances-area">
- 	</div>
-	<hr>
-	<div class="row">
+ 	<div class="row">
 		<div class="col-sm-12  text-left">
 			 <form>
 			  <div class="input-group mb-3">
@@ -343,8 +340,11 @@ function getBalanceListTag(b,p){
 			 
 			</form>
 		</div>
+	</div>
+ 	 <div class="row balances-area">
+ 				</div>
+ 	
 	<hr>
-	<div class="container-fluid">
 	<div class="row">
 	   <div class="col-sm-12">
   		<div class="row">
@@ -364,8 +364,6 @@ function getBalanceListTag(b,p){
   		</div>
 	    </div>
 	</div>
-	</div>
-</div>
 	<!-- Tail Column -->
  <%@ include file="tail.jsp" %>
 </body>

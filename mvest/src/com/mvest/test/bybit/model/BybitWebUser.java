@@ -8,6 +8,7 @@ public class BybitWebUser {
 	String api_secret;
 	String user_name;
 	String alarm_model;
+	String default_qty;
 	
 	public Object balance;
 	public Object positions;
@@ -54,10 +55,18 @@ public class BybitWebUser {
 	public void setAlarm_model(String alarm_model) {
 		this.alarm_model = alarm_model;
 	}
+	public String getDefault_qty() {
+		return default_qty;
+	}
+	public void setDefault_qty(String default_qty) {
+		this.default_qty = default_qty;
+	}
 	@Override
 	public String toString() {
 		return "BybitWebUser [id=" + id + ", password=" + password + ", user_id=" + user_id + ", api_key=" + api_key
-				+ ", api_secret=" + api_secret + ", user_name=" + user_name + ", alarm_model=" + alarm_model + "]";
+				+ ", api_secret=" + api_secret + ", user_name=" + user_name + ", alarm_model=" + alarm_model
+				+ ", default_qty=" + default_qty + ", balance=" + balance + ", positions=" + positions + ", kline="
+				+ kline + "]";
 	}
 	
 }
