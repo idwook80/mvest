@@ -1,6 +1,7 @@
 package com.mvest.m.coin;
 
 import java.io.IOException;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -9,8 +10,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
+import com.mvest.m.coin.action.BinanceOrdersAction;
 import com.mvest.m.coin.action.BinanceTestAction;
-import com.mvest.m.company.action.CompanyListAction;
+import com.mvest.m.coin.action.BybitOrdersAction;
 import com.mvest.model.ServletModel;
 
 /**
@@ -18,7 +20,8 @@ import com.mvest.model.ServletModel;
  */
 @WebServlet({
 	"/binance/test",
-	"/binance/price"
+	"/binance/price",
+	"/binance/orders"
 })
 public class BinanceServlet extends ServletModel {
 	private static final long serialVersionUID = 1L;
@@ -54,6 +57,7 @@ public class BinanceServlet extends ServletModel {
 		switch(COMMAND){
 		case "test" 			:  testAction(request,response); break;
 		case "price"			:  priceAction(request,response); break;
+		case "orders"			:  getOrdersAction(request,response); break;
 		/*case "list/all"		:  listAllAction(request,response); break;
 		case "search"			:  selectAction(request, response); break;
 		case "add" 				:  insertAction(request, response); break;
@@ -71,6 +75,10 @@ public class BinanceServlet extends ServletModel {
 		BinanceTestAction action = new BinanceTestAction();
 		action.execute(request, response);
 		
+	}
+	public void getOrdersAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		BinanceOrdersAction action = new BinanceOrdersAction();
+		action.execute(request, response);
 	}
 	
 	/*public void listAllAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

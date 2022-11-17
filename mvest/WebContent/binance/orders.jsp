@@ -32,7 +32,7 @@
 	paramMap.put("keyword", "");
 	paramMap.put("sort", "");
 	paramMap.put("order", "");
-	String user_id = request.getParameter("id") != null ? (String)request.getParameter("id") : "idwook80";
+	String user_id = request.getParameter("id") != null ? (String)request.getParameter("id") : "binance01";
 	
 	
 
@@ -62,6 +62,12 @@ var user_id = '<%=user_id %>';
 $(function(){
 	$("#input-form-today #to_date").val(today_date);
 /* 	$("#today_date").text(today_date); */
+ 	
+ 	if(user_id){
+ 		//alert(user_id);
+ 	}
+	marketAll();
+	getLoadOrders();
 	loadBalances();
 	getTime();
 	setInterval(function() {
@@ -70,7 +76,6 @@ $(function(){
 	setInterval(function() {
 		getTime();
 	}, 1000);
-	getLoadOrders();
 	
 	$("#user_selector").change(function(){
 		//alert($(this).val());
@@ -97,15 +102,177 @@ function getTimeFormat(time){
 	return time < 10 ? "0" + time : ""+time;
 }
 function loadBalances(){
-	bybit('idwook80');
+	bybit('main');
 
 }
- 
+function marketAll(){
+	$.ajax({
+        url: "https://api.upbit.com/v1/market/all",
+        dataType: "json"
+      }).done(function(markets){
+    	  updateCoins(markets);
+       });
+}
+function updateCoins(markets){
+	 for(var i=0; i<markets.length; i++){
+			var item = markets[i];
+			//console.log(Object.keys(item));
+			
+			if(item.market.startsWith('KRW')){
+				coins.push(item);
+			}
+ 	 }
+	 setCoins();
+	 var coin =  getCoins('KRW-XRP');
+	 if(coin){
+		 console.log(coin.market);
+			console.log(coin.korean_name);
+	 }
+}
+function setCoins(){
+	
+	for(var i=0; i<coins.length; i++){
+		var item = coins[i];
+		market_code += item.market;
+		if(i < coins.length-1) market_code += ",";
+	 }
+	list();
+}
+function getCoins(market){
+	for(var i=0; i<coins.length; i++){
+		var item = coins[i];
+		if(item.market == market){
+			return item;
+		}
+
+	 
+	 }
+}
+
+
+function list(){
+		/* 
+		var arr_krw_markets = 'KRW-XRP,KRW-ETH';
+		$.ajax({
+		          url: "https://api.upbit.com/v1/ticker?markets=" +arr_krw_markets,
+		          dataType: "json"
+		        }).done(function(tickers){ alert(JSON.stringify(tickers));  });
+		 */
+		 
+		 var arr_krw_markets = 'KRW-BTC,KRW-ETH,KRW-XRP,KRW-ETC,KRW-BTG,KRW-BCH';
+		 var all_market =  "https://api.upbit.com/v1/market/all";
+		 var ticker  = "https://api.upbit.com/v1/ticker?markets=" + arr_krw_markets;
+		 
+  		var REQ_TYPE 	= "get";
+  		var REQ_URL  	=  ticker;
+  		$.ajax({
+  			url			: REQ_URL,
+  			dataType	: "json", 
+  			beforeSend	: function(){/*  loadingShow(); */ },
+  			success		: function(tickers){
+  						/* loadingHide(); */
+  						var str 		= JSON.stringify(tickers,null,2);
+  						if(count == 0) {
+  							//console.log(str);
+  							count++;
+  						}
+  						updateList(tickers);
+  			},
+  			error		: function() {
+  						ajaxError();
+  			}
+  		});
+}
+
+function binance(){
+		var param 		= $("#pageForm").serialize();
+		var REQ_TYPE 	= "get";
+		var REQ_URL  	= "../binance/test";
+		$.ajax({
+			type		: REQ_TYPE,
+			url			: REQ_URL,
+			data		: param,
+			dataType	: "json", 
+			async		: true,
+			beforeSend	: function(){/*  loadingShow(); */ },
+			success		: function(res){
+						/* loadingHide(); */
+						var str 		= JSON.stringify(res,null,2);
+						var result 		= res.result;
+						var prices 		= res.prices;
+						//console.log(prices[0].markPrice);
+						var price = prices[0].markPrice.toFixed(2);
+						
+						$(".binance-price").text(price.toLocaleString());
+						
+						if(status <= 100){
+						}else {
+							ajaxLoadFail(result);
+						}
+					 	
+			},
+			error		: function() {
+						ajaxError();
+			}
+		});
+}
+
+
+
+function updateList(list){
+	$(".wins-body").html('');
+	 if(list){
+    	 for(var i=0; i<list.length; i++){
+			var item = list[i];
+			$(".wins-body").append(getItemTag(item));
+    	 }
+    	
+	 }
+}
+function getItemTag(item){
+	 	 var tag 	= new StringBuffer();
+	 	 var color = "text-dark";
+	 	 var change = "";
+	 	 var coin = getCoins(item.market);
+	 	 var korean_name = coin.korean_name != null ? coin.korean_name : "";
+	 	 
+	 	 
+	 	 if(item.change == "RISE" ){
+	 		 color = "text-danger";
+	 		change = "+";
+	 	 }else if(item.change == "FALL"){
+	 		 color = "text-primary";
+	 		change = "-";
+	 	 }else {
+	 		chagne = "";
+	 	 }
+	 	 
+	 	 tag.append("<div><li class=\"list-group-item d-flex justify-content-between align-items-center\">");
+		 tag.append("<span>" + korean_name + "<br>"+ item.market+ "</span>");
+		 tag.append("<span class=\""+color+"\">" + item.trade_price.toLocaleString() + "</span>");
+		 tag.append("<span class=\""+color+"\">" + change +  (item.change_rate * 100).toFixed(2) + "%<br>" + change + item.change_price.toLocaleString() + "</span>");
+		 tag.append("</li></div>");
+		 
+	 return tag.toString();
+}
+function getBinanceTag(str){
+	 var tag 	= new StringBuffer();
+	 tag.append("<div><li class=\"list-group-item d-flex justify-content-between align-items-center\">");
+	 tag.append("<span>" + korean_name + "<br>"+ item.market+ "</span>");
+	 tag.append("<span class=\""+color+"\">" + item.trade_price.toLocaleString() + "</span>");
+	 tag.append("<span class=\""+color+"\">" + change +  (item.change_rate * 100).toFixed(2) + "%<br>" + change + item.change_price.toLocaleString() + "</span>");
+	 tag.append("</li></div>");
+	 
+ 	return tag.toString();
+}
+
+
+
 function getOrders(id,bpage,blimit){
 	var param 		= $("#pageForm").serialize();
 		param 		+= "&id=" + id + "&bpage="+bpage+"&blimit="+blimit;
 	var REQ_TYPE 	= "get";
-	var REQ_URL  	= "../bybit/orders";
+	var REQ_URL  	= "../binance/orders";
 	$.ajax({
 		type		: REQ_TYPE,
 		url			: REQ_URL,
@@ -118,10 +285,9 @@ function getOrders(id,bpage,blimit){
 					var str 		= JSON.stringify(res,null,2);
 					//console.log(str);
 					var result 		= res.result;
-					var orders 		= res.orders.result.data;
-					//console.log(orders);
+					var orders 		= res.orders;
+					console.log(orders);
 					updateOrders(orders);
-					setReloadOrder(p_id);
 					
 					if(status <= 100){
 					}else {
@@ -181,7 +347,7 @@ function getPosition(side, reduce){
 	}
 }
 function getLoadOrders(){
-	//p_id = 0;
+	p_id = 0;
 	getOrders(user_id,1,50);
 }
 function setReloadOrder(pid){
@@ -193,12 +359,13 @@ var p_id = 0; //1 short //2 long
 var o_id = "all"; //open close
 
 function getOrderTag(o){
-	var side 	= o.side;
+	var side 	= o.side == "BUY" ? "Buy" : "Sell";
 	var price 	= o.price;
-	var qty	  	= o.qty;
-	var reduce_only = o.reduce_only;
-	var order_type	= o.order_type;
-	var order_id	= o.order_id;
+	var qty	  	= o.origQty;
+	var reduce_only = o.reduceOnly;
+	var order_type	= o.side;
+	var order_id	= o.positionSide == "LONG" ? "1" : "2";
+	
 	var position_id = getPosition_id(side, reduce_only);
 	var position	= getPosition(side, reduce_only);
 	var is_open		= getOpenClose(side, reduce_only);
@@ -206,21 +373,20 @@ function getOrderTag(o){
 	 var tcolor = position_id == 1  ? "badge badge-success" : "badge badge-danger";
 	if(position_id != p_id){
 	 var tag 	= new StringBuffer();
-	 tag.append("<div><li class=\"list-group-item d-flex justify-content-between align-items-center\">");
-		/*  tag.append(" <a href=\"#\" class=\"list-group-item list-group-item-action flex-column align-items-start\">");
-		 tag.append("  <div class=\"d-flex w-100 justify-content-between\">"); */
+		 tag.append(" <a href=\"#\" class=\"list-group-item list-group-item-action flex-column align-items-start\">");
+		 tag.append("  <div class=\"d-flex w-100 justify-content-between\">");
 		 tag.append("  <strong class=\"mb-1  badge badge-"+color+"\" >"+position+" </strong>");
 		 tag.append("  <strong style=\"text-align: right;\">"+comma(price)+"</strong>");
 		 tag.append("  <strong style=\"text-align: right;\">"+comma(qty)+"</strong>");
-	     tag.append("  <small class=\"btn btn-secondary\" onclick=\"del_order('"+order_id +"')\"><i class=\"fa fa-trash\"></i></small>"); 
-		// tag.append("   </div>");
-		 tag.append("</li></div>");
+		/*  tag.append("  <small class=\"btn btn-secondary\">취소</small>"); */
+		 tag.append("   </div>");
 	  
 	     /* tag.append(" <div class=\"d-flex w-100 justify-content-between\">");
 		 tag.append(" 	<small class=\""+tcolor+"\">"+(is_open ? "Open" : "Close")+"</small>");
 		 tag.append("   <small>"+qty+"</small>");
 		 tag.append("   <small>-125,000</small>");
 		 tag.append("  </div>");  */
+		 tag.append(" </a>");
 		return tag.toString();
 	}
 	return "";
@@ -229,35 +395,8 @@ function del_order(order_id){
 	if(order_id == null) return;
 	var is_yes = confirm("Do you want to cancel?");
 	if(!is_yes) return;
-	var param 		= $("#pageForm").serialize();
-	param 		+= "&user=" + user_id + "&order_id="+order_id + "&symbol=BTCUSDT";
-	
-	var REQ_TYPE 	= "post";
-	var REQ_URL  	= "../bybit/order/cancel";
-	$.ajax({
-		type		: REQ_TYPE,
-		url			: REQ_URL,
-		data		: param,
-		dataType	: "json", 
-		async		: true,
-		beforeSend	: function(){/*  loadingShow(); */ },
-		success		: function(res){
-					/* loadingHide(); */
-					var str 		= JSON.stringify(res,null,2);
-					console.log(str);
-					var result 		= res.result;
-					getLoadOrders();
-					if(status <= 100){
-					}else {
-						ajaxLoadFail(result);
-					}
-		},
-		error		: function() {
-					ajaxError();
-		}
-	});
+	alert(order_id);
 }
-
 function getCurrentTag(price, o1, o2){
 	 var tag 	= new StringBuffer();
 	 tag.append(" <a href=\"#\" class=\"list-group-item list-group-item-action flex-column align-items-start\">");
@@ -272,7 +411,7 @@ function getCurrentTag(price, o1, o2){
 function bybit(user){
 	
 	var param 		= $("#pageForm").serialize();
-		param 		+= "&id=" + user;
+		param 		+= "&user=" + user;
 	var REQ_TYPE 	= "get";
 	var REQ_URL  	= "../bybit/test";
 	$.ajax({
@@ -290,7 +429,7 @@ function bybit(user){
 					var usdt = res.balances.result.USDT;
 					var positions = res.positions.result;
 					var kline_1		= res.kline_1.result;
-					bybitBalanceSet(user, usdt);
+					//bybitBalanceSet(user, usdt);
 					bybitPositions(user, positions);
 					bybitKline_1(kline_1[0]);
 					if(status <= 100){
@@ -344,7 +483,7 @@ function bybitPositions(user, positions){
 			size = size*-1;
 		}
 		
-		var size2 = (size / (user == 'idwook80' ? 0.15 : 0.001)) / 10;
+		var size2 = (size / (user == 'main' ? 0.15 : 0.001)) / 10;
 		$("."+user+"-entry-price-" + position).text(comma(entry_price.toFixed(1)));
 		$("."+user+"-size-" + position).text(size.toFixed(3) +'(' +size2.toFixed(1) + ")");
 		
@@ -360,7 +499,7 @@ function bybitPositions(user, positions){
 		}
 	}
 	setPositions(positions);
-	if(user == 'idwook80') bybit('idwook02');
+	if(user == 'main') bybit('sub');
 }
 function setPositions(positions){
 	var exists = false;
@@ -385,9 +524,9 @@ function bybitBalanceSet(user, usdt){
 	var className = ".bybit-area-"+user
 	var count = 0;
 	$(className).html('');
-	//$(className).append(bybitTag("실현잔고", usdt.wallet_balance.toFixed(2)) );
-	//$(className).append(bybitTag("실현금액", usdt.realised_pnl.toFixed(2)) );
-	//$(className).append(bybitTag("미실현액", usdt.unrealised_pnl.toFixed(2)) );
+	$(className).append(bybitTag("실현잔고", usdt.wallet_balance.toFixed(2)) );
+	$(className).append(bybitTag("실현금액", usdt.realised_pnl.toFixed(2)) );
+	$(className).append(bybitTag("미실현액", usdt.unrealised_pnl.toFixed(2)) );
 	$(className).append(bybitTag("예상잔고", usdt.equity.toFixed(2)) );
 	/* $(className).append(bybitTag("이용가능",usdt.available_balance.toFixed(2)) ); */
 	/* $(".bybit-area").append(bybitTag("used_margin",usdt.used_margin.toFixed(2)));
@@ -407,7 +546,7 @@ function bybitBalanceSet(user, usdt){
 	
 	
 }
-var wondollor = 130;
+var wondollor = 140;
 function bybitTag(key, value){
 	 var tag 	= new StringBuffer();
 	 tag.append("<div><li class=\"list-group-item d-flex justify-content-between align-items-center\">");
@@ -424,6 +563,7 @@ function bybitTag(key, value){
  	return tag.toString();
  	
 }
+
 </script>
 
 <%@ include file="navbar.jsp" %> 
@@ -431,9 +571,9 @@ function bybitTag(key, value){
 <div class="container-fluid">
 
 	<div class="row">
-		<div class="col-sm-8  text-left">
+		<div class="col-sm-12  text-left">
 			<span  class="text-dark" style="font-size:20px;font-weight:bold;;">
-			<i class="fab fa-bitcoin text-warning"></i><span style="padding-left:5px;">현재 상태<strong id="today_date" style="font-size:10px;">0000-00-00</strong></span> 
+			<i class="fab fa-bitcoin text-warning"></i><span style="padding-left:5px;">주문상태 	<strong id="today_date" style="font-size:10px;">0000-00-00</strong></span> 
 			</span><br>
 				<span style="font-size:12px;">
 				현재가 : <span class="current_price"><i class="fas fa-arrow-up text-danger"></i><span>00000</span></span>
@@ -441,117 +581,26 @@ function bybitTag(key, value){
 			 	<i style="font-size:8px;">(<span id="today_time">00:00:00</span>)</i>
 			 </span>
 		</div>
-	 	<!-- <div class="col-sm-4 text-right" style="font-size:10px;">
-	 		<span class="text-right text-dark">
-	 	 	<strong id="today_date">0000-00-00</strong>
-	 		</span><br>
-	 		<span><strong id="today_time">000000-00</strong></span>
-	 	</div>  -->
- 	</div>
-  	<hr>
- 	<div class="row">
+		<div class="col-sm-12  text-left">
+			 <form>
+			  <div class="input-group mb-3">
+			    <div class="input-group-prepend">
+			      <span class="input-group-text">모드</span>
+			    </div>
+			      <select class="form-control" id="user_selector" name="user_selector">
+			        <option value="biance01" selected>Binace01</option>
+			      </select>
+			  </div>
+			</form>
+		</div>
 	 
-		<div class="col-md-6">
-			<div class="row">
-					<div class="container-fluid">
-					 <div class="row">
-					  <!-- Right Column -->
-					     	 <%-- <%@ include file="right.jsp" %>  --%>
-					    <div class="col-sm-12">
-					  		<div class="row">
-					  				
-				  					<ul class="list-group col-sm-12">
-										  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
-											 <span><strong>예약버전</strong></span>
-											 <span class="text-right">
-											 	 <span class="btn btn-success" style='line-height:80%'>
-											 	 	<span class="idwook80-entry-price-long" style="font-size:12px;">19,105.0</span><br> 
-											 	 	<span class="idwook80-size-long" style="font-size:8px;">112.005</span>
-											 	 </span>
-											 	 
-											 	  <span class="btn btn-danger" style='line-height:80%'>
-											 	 	<span class="idwook80-entry-price-short" style="font-size:12px;">19,105.0</span><br> 
-											 	 	<span class="idwook80-size-short" style="font-size:8px;">-112.005</span>
-											 	 </span>
-											 </span>
-										
-		  								 </li>
-										  <div class="bybit-area-idwook80" style="display:">
-					  					  </div>
-								 	</ul>
-					  			 
-					  		</div>
-						</div>
-						  <!-- Right Column -->
-								<%--  <%@ include file="right.jsp" %>  --%>
-						  <!-- Right Column -->
-					   </div>
-					</div>
-			</div>
-		</div>
-		<hr>
-		<div class="col-md-6">
-			<div class="row">
-					<div class="container-fluid">
-					 <div class="row">
-					  <!-- Right Column -->
-					     	 <%-- <%@ include file="right.jsp" %>  --%>
-					    <div class="col-sm-12">
-					  		<div class="row">
-				  					<ul class="list-group col-sm-12">
-										  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
-											 <span><strong>자동버전</strong></span>
-											 <span class="text-right">
-											 
-											 	 <span class="btn btn-success" style='line-height:80%'>
-											 	 	<span class="idwook02-entry-price-long" style="font-size:12px;">19,105.0</span><br> 
-											 	 	<span class="idwook02-size-long"  style="font-size:8px;">112.005</span>
-											 	 </span>
-											 	 
-											 	  <span class="btn btn-danger" style='line-height:80%'>
-											 	 	<span class="idwook02-entry-price-short" style="font-size:12px;">19,105.0</span><br> 
-											 	 	<span class="idwook02-size-short" style="font-size:8px;">-112.005</span>
-											 	 </span>
-											 </span>
-										
-		  								 </li>
-										  <div class="bybit-area-idwook02" style="display:">
-					  					  </div>
-								 	</ul>
-					  		</div>
-					     
-						</div>
-						  <!-- Right Column -->
-								<%--  <%@ include file="right.jsp" %>  --%>
-						  <!-- Right Column -->
-					   </div>
-					</div>
-			</div>
-		</div>
  	</div>
- 	
- 	
- 	
-	<hr>
 	<div class="col-sm-12">
 		<div class="row">
 				<div class="container-fluid">
 				 <div class="row">
 				  <!-- Right Column -->
-				    <div class="col-sm-12  text-left">
-						 <form>
-						  <div class="input-group mb-3">
-						    <div class="input-group-prepend">
-						      <span class="input-group-text">모드</span>
-						    </div>
-						      <select class="form-control" id="user_selector" name="user_selector">
-						        <option value="idwook80" selected>모드80</option>
-						        <option value="idwook01">모드01</option>
-						        <option value="idwook02">모드02</option>
-						      </select>
-						  </div>
-						</form>
-					</div>
+				     	 <%-- <%@ include file="right.jsp" %>  --%>
 				    <div class="col-sm-12">
 				  		<div class="row">
 				  				
@@ -576,17 +625,41 @@ function bybitTag(key, value){
 									
 	  								 </li>
 							 	</ul>
-							 	 <div class="list-group col-sm-12 orders-area">
-						   		</div>
 				  			 
 				  		</div>
-				  		<div class="row">
-				  				
-				  		
-				  		</div>
 					</div>
+					  <!-- Right Column -->
+							<%--  <%@ include file="right.jsp" %>  --%>
+					  <!-- Right Column -->
+				   </div>
 				</div>
 		</div>
+	</div>
+	 
+	<hr>
+	<div class="container-fluid">
+	<div class="row">
+	   <div class="col-sm-12">
+  		<div class="row">
+			<div class="list-group col-sm-12 orders-area">
+			  <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+			    <div class="d-flex w-100 justify-content-between">
+			      <h5 class="mb-1" style="width: 100px;">Binance </h5>
+			      <strong style="text-align: right;" class="binance-price">39,840,000</strong>
+			      <h5 class="mb-1 text-danger">-0.42% </h5>
+			    </div>
+			  
+				  <div class="d-flex w-100 justify-content-between">
+				  	<small class="text-secondary">KRW-XRP</small>
+				    <small>-125,000</small>
+				   </div>
+			  </a>
+						  
+			</div>
+  			 
+  		</div>
+	    </div>
+	</div>
 	</div>
 
 	
