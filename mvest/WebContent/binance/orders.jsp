@@ -66,7 +66,6 @@ $(function(){
  	if(user_id){
  		//alert(user_id);
  	}
-	marketAll();
 	getLoadOrders();
 	loadBalances();
 	getTime();
@@ -104,84 +103,6 @@ function getTimeFormat(time){
 function loadBalances(){
 	bybit('main');
 
-}
-function marketAll(){
-	$.ajax({
-        url: "https://api.upbit.com/v1/market/all",
-        dataType: "json"
-      }).done(function(markets){
-    	  updateCoins(markets);
-       });
-}
-function updateCoins(markets){
-	 for(var i=0; i<markets.length; i++){
-			var item = markets[i];
-			//console.log(Object.keys(item));
-			
-			if(item.market.startsWith('KRW')){
-				coins.push(item);
-			}
- 	 }
-	 setCoins();
-	 var coin =  getCoins('KRW-XRP');
-	 if(coin){
-		 console.log(coin.market);
-			console.log(coin.korean_name);
-	 }
-}
-function setCoins(){
-	
-	for(var i=0; i<coins.length; i++){
-		var item = coins[i];
-		market_code += item.market;
-		if(i < coins.length-1) market_code += ",";
-	 }
-	list();
-}
-function getCoins(market){
-	for(var i=0; i<coins.length; i++){
-		var item = coins[i];
-		if(item.market == market){
-			return item;
-		}
-
-	 
-	 }
-}
-
-
-function list(){
-		/* 
-		var arr_krw_markets = 'KRW-XRP,KRW-ETH';
-		$.ajax({
-		          url: "https://api.upbit.com/v1/ticker?markets=" +arr_krw_markets,
-		          dataType: "json"
-		        }).done(function(tickers){ alert(JSON.stringify(tickers));  });
-		 */
-		 
-		 var arr_krw_markets = 'KRW-BTC,KRW-ETH,KRW-XRP,KRW-ETC,KRW-BTG,KRW-BCH';
-		 var all_market =  "https://api.upbit.com/v1/market/all";
-		 var ticker  = "https://api.upbit.com/v1/ticker?markets=" + arr_krw_markets;
-		 
-  		var REQ_TYPE 	= "get";
-  		var REQ_URL  	=  ticker;
-  		$.ajax({
-  			url			: REQ_URL,
-  			dataType	: "json", 
-  			beforeSend	: function(){/*  loadingShow(); */ },
-  			success		: function(tickers){
-  						/* loadingHide(); */
-  						var str 		= JSON.stringify(tickers,null,2);
-  						if(count == 0) {
-  							//console.log(str);
-  							count++;
-  						}
-  						updateList(tickers);
-  			},
-  			error		: function() {
-  						ajaxError();
-  			}
-  		});
 }
 
 function binance(){
@@ -347,7 +268,7 @@ function getPosition(side, reduce){
 	}
 }
 function getLoadOrders(){
-	p_id = 0;
+	//p_id = 0;
 	getOrders(user_id,1,50);
 }
 function setReloadOrder(pid){
@@ -365,6 +286,8 @@ function getOrderTag(o){
 	var reduce_only = o.reduceOnly;
 	var order_type	= o.side;
 	var order_id	= o.positionSide == "LONG" ? "1" : "2";
+	var orderId		=  o.orderId;
+	var clientOrderId = o.clientOrderId;
 	
 	var position_id = getPosition_id(side, reduce_only);
 	var position	= getPosition(side, reduce_only);
@@ -378,7 +301,7 @@ function getOrderTag(o){
 		 tag.append("  <strong class=\"mb-1  badge badge-"+color+"\" >"+position+" </strong>");
 		 tag.append("  <strong style=\"text-align: right;\">"+comma(price)+"</strong>");
 		 tag.append("  <strong style=\"text-align: right;\">"+comma(qty)+"</strong>");
-		/*  tag.append("  <small class=\"btn btn-secondary\">취소</small>"); */
+		 tag.append("  <small class=\"btn btn-secondary\" onclick=\"del_order(`"+orderId+"`,`"+clientOrderId+"`)\"><i class=\"fa fa-trash\"></i></small>");
 		 tag.append("   </div>");
 	  
 	     /* tag.append(" <div class=\"d-flex w-100 justify-content-between\">");
@@ -391,11 +314,37 @@ function getOrderTag(o){
 	}
 	return "";
 }
-function del_order(order_id){
-	if(order_id == null) return;
+function del_order(orderId, clientOrderId){
+	if(orderId == null) return;
 	var is_yes = confirm("Do you want to cancel?");
 	if(!is_yes) return;
-	alert(order_id);
+	var param 		= $("#pageForm").serialize();
+	param 		+= "&id=" + user_id + "&orderId="+orderId + "&clientOrderId="+clientOrderId  + "&symbol=BTCUSDT";
+	
+	var REQ_TYPE 	= "post";
+	var REQ_URL  	= "../binance/order/cancel";
+	$.ajax({
+		type		: REQ_TYPE,
+		url			: REQ_URL,
+		data		: param,
+		dataType	: "json", 
+		async		: true,
+		beforeSend	: function(){/*  loadingShow(); */ },
+		success		: function(res){
+					/* loadingHide(); */
+					var str 		= JSON.stringify(res,null,2);
+					console.log(str);
+					var result 		= res.result;
+					getLoadOrders();
+					if(status <= 100){
+					}else {
+						ajaxLoadFail(result);
+					}
+		},
+		error		: function() {
+					ajaxError();
+		}
+	});
 }
 function getCurrentTag(price, o1, o2){
 	 var tag 	= new StringBuffer();
@@ -546,7 +495,7 @@ function bybitBalanceSet(user, usdt){
 	
 	
 }
-var wondollor = 140;
+var wondollor = 130;
 function bybitTag(key, value){
 	 var tag 	= new StringBuffer();
 	 tag.append("<div><li class=\"list-group-item d-flex justify-content-between align-items-center\">");

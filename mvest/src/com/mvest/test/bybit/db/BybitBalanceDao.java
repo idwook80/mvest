@@ -21,7 +21,7 @@ public class BybitBalanceDao implements DaoModel {
 												"order_margin","position_margin","realised_pnl",
 												"service_cash","unrealised_pnl",
 												"used_margin","wallet_balance",
-												"reg_date","reg_datetime"};
+												"reg_date","reg_datetime","deposit","withdraw"};
 												
 												
 	public volatile static BybitBalanceDao instance;

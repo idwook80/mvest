@@ -20,6 +20,8 @@ public class BybitBalance {
 	String wallet_balance;
 	String reg_date;
 	String reg_datetime;
+	String deposit;
+	String withdraw;
 	 
 	public String getId() {
 		return id;
@@ -157,6 +159,22 @@ public class BybitBalance {
 		this.reg_datetime = reg_datetime;
 	}
 
+	public String getDeposit() {
+		return deposit;
+	}
+
+	public void setDeposit(String deposit) {
+		this.deposit = deposit;
+	}
+
+	public String getWithdraw() {
+		return withdraw;
+	}
+
+	public void setWithdraw(String withdraw) {
+		this.withdraw = withdraw;
+	}
+
 	@Override
 	public String toString() {
 		return "BybitBalance [id=" + id + ", symbol=" + symbol + ", equity=" + equity + ", available_balance="
@@ -165,7 +183,8 @@ public class BybitBalance {
 				+ order_margin + ", position_margin=" + position_margin + ", realised_pnl=" + realised_pnl
 				+ ", service_cash=" + service_cash + ", unrealised_pnl=" + unrealised_pnl + ", used_margin="
 				+ used_margin + ", wallet_balance=" + wallet_balance + ", reg_date=" + reg_date + ", reg_datetime="
-				+ reg_datetime + "]";
+				+ reg_datetime + ", deposit=" + deposit + ", withdraw=" + withdraw + "]";
 	}
-	
+ 
+		
 }

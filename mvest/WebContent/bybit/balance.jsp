@@ -130,6 +130,8 @@ function updateBalances(balances){
 	}
 }
 function getBalanceTag(b){
+	console.log(b);
+	if(b.id.startsWith('binance')) return;
 	var positions = b.positions;
 	var usdt	  = b.balance.result.USDT;
 	

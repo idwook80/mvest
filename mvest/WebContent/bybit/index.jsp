@@ -269,6 +269,7 @@ function getCurrentTag(price, o1, o2){
   
 	return tag.toString();
 }
+
 function bybit(user){
 	
 	var param 		= $("#pageForm").serialize();
@@ -381,6 +382,8 @@ function getPositions(position){
 	}
 	return null;
 }
+
+var t_equity = 0;
 function bybitBalanceSet(user, usdt){
 	var className = ".bybit-area-"+user
 	var count = 0;
@@ -403,11 +406,16 @@ function bybitBalanceSet(user, usdt){
 	/* $(className + " .p-value").slideUp(500,function(){
 		$(this).slideDown(1000);
 	}); */
-	
+	if(user == 'idwook80') t_equity = usdt.equity;
+	else {
+		t_equity += usdt.equity;
+		$(".t_equity").text(comma(t_equity.toFixed(2)));
+		$(".t_equity_won").text(comma((t_equity * wondollor).toFixed(0)));
+	}
 	
 	
 }
-var wondollor = 130;
+var wondollor = 0.13;
 function bybitTag(key, value){
 	 var tag 	= new StringBuffer();
 	 tag.append("<div><li class=\"list-group-item d-flex justify-content-between align-items-center\">");
@@ -417,7 +425,7 @@ function bybitTag(key, value){
 	 else tag.append("<span class='text-danger p-value'>$" + value+ "</span>");
 	 
 	 if(value > 0) tag.append("<span class='text-success p-value'>￦" + comma((value * wondollor).toFixed(0))+ "</span>");
-	 else tag.append("<span class='text-danger p-value'>￦" + comma((value * 1400).toFixed(0))+ "</span>");
+	 else tag.append("<span class='text-danger p-value'>￦" + comma((value * wondollor).toFixed(0))+ "</span>");
 	 
 	 tag.append("</li></div>");
 	 
@@ -433,13 +441,22 @@ function bybitTag(key, value){
 	<div class="row">
 		<div class="col-sm-8  text-left">
 			<span  class="text-dark" style="font-size:20px;font-weight:bold;;">
-			<i class="fab fa-bitcoin text-warning"></i><span style="padding-left:5px;">현재 상태<strong id="today_date" style="font-size:10px;">0000-00-00</strong></span> 
+				<i class="fab fa-bitcoin text-warning"></i>
+				<span style="padding-left:5px;">현재 상태
+				<strong id="today_date" style="font-size:10px;">0000-00-00</strong>
+				</span> 
 			</span><br>
-				<span style="font-size:12px;">
+			<span  class="text-dark" style="font-size:20px;font-weight:bold;;">
+				<i class="text-warning">$</i>
+				<span class="t_equity text-success"></span> 
+				<i class="text-warning" style="padding-left:3px;">￦</i>
+				<span class="t_equity_won text-success"></span> 
+			</span><br>
+			<span style="font-size:12px;">
 				현재가 : <span class="current_price"><i class="fas fa-arrow-up text-danger"></i><span>00000</span></span>
 			 	, 1분거래량 : <span class="current_volume">0000</span>
 			 	<i style="font-size:8px;">(<span id="today_time">00:00:00</span>)</i>
-			 </span>
+			</span>
 		</div>
 	 	<!-- <div class="col-sm-4 text-right" style="font-size:10px;">
 	 		<span class="text-right text-dark">

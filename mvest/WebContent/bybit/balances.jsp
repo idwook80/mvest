@@ -27,7 +27,7 @@
 	
 	HashMap<String,Object> paramMap = new HashMap<String,Object>();
 	paramMap.put("curPage", (request.getParameter("curPage") != null ? (String) request.getParameter("curPage") : "1") );
-	paramMap.put("perPage", (request.getParameter("perPage") != null ? (String) request.getParameter("perPage") : "20") );
+	paramMap.put("perPage", (request.getParameter("perPage") != null ? (String) request.getParameter("perPage") : "30") );
 	paramMap.put("search_param", "");
 	paramMap.put("keyword", "");
 	paramMap.put("sort", "");
@@ -276,12 +276,21 @@ function updateBalanceList(balances){
 	}
 }
 function getBalanceListTag(b,p){
+	var deposit = p ? parseFloat(p.deposit) : 0;
+	var withdraw = p ? parseFloat(p.withdraw) : 0;
+	var psum = deposit - withdraw;
+	var csum = parseFloat(b.deposit) - parseFloat(b.withdraw) 
 	var equity = parseFloat(b.equity);
-	var pre	 = p ? (equity - parseFloat(p.equity)) : 0;
+	var pequity = p ? parseFloat(p.equity) + psum : 0;
+	var profit = p ?  equity - pequity : 0;
+	
+	//var pre	 = p ? ((equity + 0)  - (parseFloat(p.equity) + sum) ) : 0;
 	var reg_date = b.reg_date;
 	var id		 = b.id;
-	var per     = 0;
-	if(p) per = pre / ( parseFloat(p.equity)/ 100);
+	var per      = 0;
+	
+	
+	if(p) per = profit / ( pequity / 100);
 	
 	 var tag 	= new StringBuffer();
 	 tag.append("<a href=\"#\" class=\"list-group-item list-group-item-action flex-column align-items-start\">");
@@ -293,8 +302,12 @@ function getBalanceListTag(b,p){
 	 tag.append(" </div>");
 	 tag.append("<div class=\"d-flex w-100 justify-content-between\">");
 	 tag.append("<small class=\"text-secondary\">"+id+"</small>");
-	 if(pre < 0 ) tag.append(" <small class=\"text-danger\">"+pre.toFixed(2)+"</small>");
-	 else tag.append(" <small class=\"text-success\">"+pre.toFixed(2)+"</small>");
+	 
+	 if(csum < 0 ) tag.append(" <small class=\"text-danger\">"+csum.toFixed(2)+"</small>");
+	 else tag.append(" <small class=\"text-success\">"+csum.toFixed(2)+"</small>");
+	 
+	 if(profit < 0 ) tag.append(" <small class=\"text-danger\">"+profit.toFixed(2)+"</small>");
+	 else tag.append(" <small class=\"text-success\">"+profit.toFixed(2)+"</small>");
 	 
 	 tag.append(" </div>");
 	 tag.append(" </a>");
@@ -330,6 +343,7 @@ function getBalanceListTag(b,p){
 			        <option value="idwook80" selected>모드80</option>
 			        <option value="idwook01">모드01</option>
 			        <option value="idwook02">모드02</option>
+			        <option value="binance01">Binance80</option>
 			      </select>
 			       <div class="input-group-prepend">
 			        <span class="btn btn-light" style='line-height:100%'  onclick="getBalanceList()">
