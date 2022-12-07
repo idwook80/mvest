@@ -332,9 +332,11 @@ function getBalanceListTag(b,p){
 			      <span class="input-group-text">사용자</span>
 			    </div>
 			      <select class="form-control" id="user_selector" name="user_selector">
-			        <option value="idwook80" selected>모드80</option>
+			      	<option value="all" selected>전체</option>
+			        <option value="idwook80">모드80</option>
 			        <option value="idwook01">모드01</option>
 			        <option value="idwook02">모드02</option>
+			        <option value="binance01">Binace01</option>
 			      </select>
 			       <div class="input-group-prepend">
 			        <span class="btn btn-light" style='line-height:100%'  onclick="getBalanceList()">

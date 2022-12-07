@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import com.mvest.m.coin.action.BinanceTestAction;
 import com.mvest.m.coin.action.BybitBalanceListAction;
+import com.mvest.m.coin.action.BybitBalanceListDailyAction;
 import com.mvest.m.coin.action.BybitBalancesAction;
 import com.mvest.m.coin.action.BybitOrderCancelAction;
 import com.mvest.m.coin.action.BybitOrdersAction;
@@ -27,7 +28,8 @@ import com.mvest.model.ServletModel;
 	"/bybit/orders",
 	"/bybit/order/cancel",
 	"/bybit/balances",
-	"/bybit/balance/list"
+	"/bybit/balance/list",
+	"/bybit/balance/list/daily"
 })
 public class BybitServlet extends ServletModel {
 	private static final long serialVersionUID = 1L;
@@ -66,6 +68,7 @@ public class BybitServlet extends ServletModel {
 		case "orders"			:  getOrdersAction(request,response); break;
 		case "balances"			:  getBalancesAction(request, response); break;
 		case "balance/list"		:  getBalanceListAction(request, response); break;
+		case "balance/list/daily": getBalanceListDailyAction(request, response); break;
 		case "order/cancel"		:  cancelOrderAction(request, response); break;
 		/*case "list/all"		:  listAllAction(request,response); break;
 		case "search"			:  selectAction(request, response); break;
@@ -93,6 +96,10 @@ public class BybitServlet extends ServletModel {
 	}
 	public void getBalanceListAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		BybitBalanceListAction action = new BybitBalanceListAction();
+		action.execute(request, response);
+	}
+	public void getBalanceListDailyAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		BybitBalanceListDailyAction action = new BybitBalanceListDailyAction();
 		action.execute(request, response);
 	}
 	public void cancelOrderAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

@@ -26,7 +26,7 @@ import com.mvest.test.bybit.db.BybitWebUserDao;
 import com.mvest.test.bybit.model.BybitBalance;
 import com.mvest.test.bybit.model.BybitWebUser;
 
-public class BybitBalanceListAction extends ActionModel {
+public class BybitBalanceListDailyAction extends ActionModel {
 	@Override
 	public void perform(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
@@ -40,6 +40,7 @@ public class BybitBalanceListAction extends ActionModel {
 		String orderby  = getParameter("order");
 		String id		= getParameter("id");
 	  
+		
 		String symbol = getParameter("symbol");
 		
 		
@@ -55,38 +56,15 @@ public class BybitBalanceListAction extends ActionModel {
 		numPerPage = 30;
 		
 		if(isNull(where)) where = null;
-		if(isNull(orderby)) orderby = null;
-		if(id.equals("all")) {
-			getDaily();
-		}else {
-			try {
-				int total = BybitBalanceDao.getInstace().getListCount(where);
-				Vo vo = getNumbersForPaging(total, curPage, numPerPage, pagePerBlock);
-				addJsonObject("vo", vo);
-				
-				List<BybitBalance> balances= BybitBalanceDao.getInstace().getList(vo.getStartRecord(), vo.getEndRecord(), where, orderby);
-				if(balances != null) addJsonArray("balances", balances);
-				addJsonObjectProperty("total", String.valueOf(total));
-				setResultOk();
-				
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				setResultError(e.getMessage());
-			}
-			outJsonObject();
-		}
 		
-	}
-	 
- 
-	public void getDaily() {
+			if(isNull(orderby)) orderby = null;
+		
 		try {
 			int total = BybitBalanceDao.getInstace().getListDailyCount();
 			Vo vo = getNumbersForPaging(total, curPage, numPerPage, pagePerBlock);
 			addJsonObject("vo", vo);
 			
-			List<BybitBalance> balances= BybitBalanceDao.getInstace().getListDaily(vo.getStartRecord(), vo.getEndRecord(), null, null);
+			List<BybitBalance> balances= BybitBalanceDao.getInstace().getListDaily(vo.getStartRecord(), vo.getEndRecord(), where, orderby);
 			if(balances != null) addJsonArray("balances", balances);
 			addJsonObjectProperty("total", String.valueOf(total));
 			setResultOk();
@@ -99,6 +77,10 @@ public class BybitBalanceListAction extends ActionModel {
 		
 		
 		outJsonObject();
+  
+		
 	}
+	 
+ 
 
 }

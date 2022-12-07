@@ -71,6 +71,14 @@ public class BybitBalanceDao implements DaoModel {
 		System.out.println(result[0][0]);
 		return Integer.parseInt(result[0][0].toString());
 	}
+	public int getListDailyCount() throws Exception{
+		String sql = ("SELECT count(c.reg_date) FROM (SELECT reg_date FROM bybit.balance GROUP BY reg_date) AS c");
+		
+		Object[][] result = WebDBManager.getInstance().select(sql);
+		if(result == null) return 0;
+		System.out.println(result[0][0]);
+		return Integer.parseInt(result[0][0].toString());
+	}
 	public List getList(int start, int offset) throws Exception{
 		return getList(start, offset, null , null);
 	}
@@ -90,6 +98,25 @@ public class BybitBalanceDao implements DaoModel {
 		for(HashMap row : list){
 			BybitBalance c = new BybitBalance();
 			query.setSelectObject(row, c);
+			balances.add(c);
+		}
+		return balances;
+	}
+	public List getListDaily(int start, int offset, String where, String orderby) throws Exception{
+		QueryBuffer query = new QueryBuffer(DB,TABLE);
+		query.setSelect(COLUMNS);
+		
+		String sql = "SELECT " + query.getSelectBuffer().replace("equity,", "") + " , SUM(equity) AS equity " +
+		" FROM  bybit.balance GROUP BY reg_date ORDER BY reg_date DESC LIMIT "+ start + " , " + offset;
+		
+		List<HashMap> list  = WebDBManager.getInstance().queryForList(sql);
+		if(list == null) return null;
+		
+		List<BybitBalance> balances = new ArrayList();
+		for(HashMap row : list){
+			BybitBalance c = new BybitBalance();
+			query.setSelectObject(row, c);
+			c.setId("all");
 			balances.add(c);
 		}
 		return balances;
