@@ -15,6 +15,7 @@ import com.mvest.m.coin.action.BybitBalanceListAction;
 import com.mvest.m.coin.action.BybitBalanceListDailyAction;
 import com.mvest.m.coin.action.BybitBalancesAction;
 import com.mvest.m.coin.action.BybitOrderCancelAction;
+import com.mvest.m.coin.action.BybitOrderCreateAction;
 import com.mvest.m.coin.action.BybitOrdersAction;
 import com.mvest.m.coin.action.BybitTestAction;
 import com.mvest.model.ServletModel;
@@ -27,6 +28,7 @@ import com.mvest.model.ServletModel;
 	"/bybit/price",
 	"/bybit/orders",
 	"/bybit/order/cancel",
+	"/bybit/order/create",
 	"/bybit/balances",
 	"/bybit/balance/list",
 	"/bybit/balance/list/daily"
@@ -70,6 +72,7 @@ public class BybitServlet extends ServletModel {
 		case "balance/list"		:  getBalanceListAction(request, response); break;
 		case "balance/list/daily": getBalanceListDailyAction(request, response); break;
 		case "order/cancel"		:  cancelOrderAction(request, response); break;
+		case "order/create"		:  createOrderAction(request, response); break;
 		/*case "list/all"		:  listAllAction(request,response); break;
 		case "search"			:  selectAction(request, response); break;
 		case "add" 				:  insertAction(request, response); break;
@@ -104,6 +107,10 @@ public class BybitServlet extends ServletModel {
 	}
 	public void cancelOrderAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		BybitOrderCancelAction action = new BybitOrderCancelAction();
+		action.execute(request, response);
+	}
+	public void createOrderAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		BybitOrderCreateAction action = new BybitOrderCreateAction();
 		action.execute(request, response);
 	}
 	/*public void listAllAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

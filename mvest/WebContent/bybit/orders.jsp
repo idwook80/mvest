@@ -71,7 +71,7 @@ $(function(){
 	loadBalances();
 	getTime();
 	setInterval(function() {
-		loadBalances();
+		//loadBalances();
 	}, 1000*10);
 	setInterval(function() {
 		getTime();
@@ -377,6 +377,7 @@ function getOrderTag(o){
 		 tag.append("  <strong class=\"mb-1  badge badge-"+color+"\" >"+position+" </strong>");
 		 tag.append("  <strong style=\"text-align: right;\">"+comma(price)+"</strong>");
 		 tag.append("  <strong style=\"text-align: right;\">"+comma(qty)+"</strong>");
+		 tag.append("  <small class=\"btn btn-secondary\" onclick=\"del_order('"+order_id +"')\"><i class=\"fa fa-trash\"></i></small>");
 		/*  tag.append("  <small class=\"btn btn-secondary\">취소</small>"); */
 		 tag.append("   </div>");
 	  
@@ -394,8 +395,36 @@ function del_order(order_id){
 	if(order_id == null) return;
 	var is_yes = confirm("Do you want to cancel?");
 	if(!is_yes) return;
-	alert(order_id);
+	var param 		= $("#pageForm").serialize();
+	param 		+= "&user=" + user_id + "&order_id="+order_id + "&symbol=BTCUSDT";
+	
+	var REQ_TYPE 	= "post";
+	var REQ_URL  	= "../bybit/order/cancel";
+	$.ajax({
+		type		: REQ_TYPE,
+		url			: REQ_URL,
+		data		: param,
+		dataType	: "json", 
+		async		: true,
+		beforeSend	: function(){/*  loadingShow(); */ },
+		success		: function(res){
+					/* loadingHide(); */
+					var str 		= JSON.stringify(res,null,2);
+					console.log(str);
+					var result 		= res.result;
+					getLoadOrders();
+					if(status <= 100){
+					}else {
+						ajaxLoadFail(result);
+					}
+		},
+		error		: function() {
+					ajaxError();
+		}
+	});
 }
+
+ 
 function getCurrentTag(price, o1, o2){
 	 var tag 	= new StringBuffer();
 	 tag.append(" <a href=\"#\" class=\"list-group-item list-group-item-action flex-column align-items-start\">");
@@ -545,7 +574,7 @@ function bybitBalanceSet(user, usdt){
 	
 	
 }
-var wondollor = 140;
+var wondollor = 130;
 function bybitTag(key, value){
 	 var tag 	= new StringBuffer();
 	 tag.append("<div><li class=\"list-group-item d-flex justify-content-between align-items-center\">");
@@ -555,7 +584,7 @@ function bybitTag(key, value){
 	 else tag.append("<span class='text-danger p-value'>$" + value+ "</span>");
 	 
 	 if(value > 0) tag.append("<span class='text-success p-value'>￦" + comma((value * wondollor).toFixed(0))+ "</span>");
-	 else tag.append("<span class='text-danger p-value'>￦" + comma((value * 1400).toFixed(0))+ "</span>");
+	 else tag.append("<span class='text-danger p-value'>￦" + comma((value * wondollor).toFixed(0))+ "</span>");
 	 
 	 tag.append("</li></div>");
 	 
@@ -609,21 +638,24 @@ function bybitTag(key, value){
 									  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
 										 <span class="text-right">
 										  	<span class="btn btn-info" style='line-height:100%' onclick="setReloadOrder(0)">
-										 	 	<span    class="" style="font-size:12px;"  >전체</span>
+										 	 	<span    class="" style="font-size:12px;"  >All</span>
 										 	 </span>
 										 	 <span class="btn btn-success" style='line-height:100%' onclick="setReloadOrder(2)">
 										 	 	<span class="" style="font-size:12px;" >Long</span> 
 										 	 </span>
 										 	 
 										 	  <span class="btn btn-danger" style='line-height:100%'  onclick="setReloadOrder(1)">
-										 	 	<aspanclass="" style="font-size:12px;">Short</span>
+										 	 	<span class="" style="font-size:12px;">Short</span>
 										 	 </span>
 										 	 
-										 	  <span class="btn btn-light" style='line-height:100%'  onclick="getLoadOrders()">
-										 	 	<aspanclass="" style="font-size:12px;">조회</span>
+										 	 <span class="btn btn-light" style='line-height:100%'  onclick="showInputModal()">
+										 	 	<span class="" style="font-size:12px;">Order</span>
 										 	 </span>
+										 	 
 										 </span>
-									
+										 <span class="btn btn-light" style='line-height:100%'  onclick="getLoadOrders()">
+									 	 	<span class="" style="font-size:12px;">Reload</span>
+									 	 </span>
 	  								 </li>
 							 	</ul>
 				  			 
@@ -667,6 +699,167 @@ function bybitTag(key, value){
 </div>
 	<!-- Tail Column -->
  <%@ include file="tail.jsp" %>
+ 
+ 
+ 
+<!-- The Modal Start-->
+<div class="modal" id="input-modal">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">Modal Heading</h4>
+        <button type="button" class="close" data-dismiss="#input-modal" onclick="hideInputModal()">&times;</button>
+      </div>
+      <div class="modal-header">
+      	<ul class="nav nav-pills" style="width:100%;">
+		  <li class="active"><a class="btn btn-success" data-toggle="pill" href="#home" style="width:100%;">Open</a></li>
+		  <li> </li>
+		  <li><a class="btn btn-danger" data-toggle="pill" href="#menu1">Close</a></li>
+		</ul>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+		 
+       	 <style>
+	     	#input-form-order .input-group-prepend .input-group-text{
+	     	width:100px;
+	     	}
+	     </style>
+		 <div class="col-sm-12" >
+							<div class="card">
+								<form class="card-body" id="input-form-order">
+								  <input type="hidden" id="symbol" 		name="symbol" 	value="BTCUSDT">
+								  <input type="hidden" id="user" 	name="user" 	value="">
+								  <input type="hidden" id="side" 		name="side" 	value="Buy">
+								  <input type="hidden" id="position_idx" name="position_idx" value="1">
+								  
+								  <div class="input-group mb-3">
+								     <div class="input-group-prepend">
+								       <span class="input-group-text text-center">Order</span>
+								    </div>
+								    <input type="text" class="form-control" id="order_type" name="order_type" value="Limit">
+								  </div>
+								  <div class="input-group mb-3">
+								     <div class="input-group-prepend">
+								       <span class="input-group-text text-center">Price</span>
+								    </div>
+								    <input type="text" class="form-control" id="price" name="price">
+								  </div>
+								  <div class="input-group mb-3">
+								     <div class="input-group-prepend">
+								       <span class="input-group-text text-center">Qty</span>
+								    </div>
+								    <input type="text" class="form-control" id="qty" name="qty">
+								  </div>
+								</form>
+							</div>
+			</div>
+						 
+      </div>
+      <!-- Modal footer -->
+      <div class="modal-footer tab-content">
+      		 
+			  <div id="home" class="tab-pane active text-left">
+			     <button type="button" class="btn btn-success" data-dismiss="input-modal" onclick="orderAction('Buy','1')">Open Long</button>
+			     <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="orderAction('Sell', '2')">Open Short</button>
+			  </div>
+			  <div id="menu1" class="tab-pane fade text-right">
+			 	 <button type="button" class="btn btn-success" data-dismiss="input-modal" onclick="orderAction('Buy','2')">Close Short</button>
+			     <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="orderAction('Sell','1')">Close Long</button>
+			  </div>
+	  </div>
+
+    </div>
+  </div>
+</div>
+ <!-- The Modal End-->
+<script type="text/javascript">
+	function showInputModal(idx){
+		selectToday(idx);
+		showInputModal();
+	}
+	function showInputModal(){
+		var user_id = $("#user_selector").val();
+		$("#input-form-order #user").val(user_id);
+		$("#input-modal").show();
+		$(".modal-title").text("# " + user_id + " # Order Input");
+	}
+	function hideInputModal(){
+		$("#input-modal").hide();
+	}
+	function orderAction(side, position_idx){
+		 $("#input-form-order #side").val(side);
+		 $("#input-form-order #position_idx").val(position_idx);
+		 var msg = "";
+		 if(side == 'Buy' && position_idx == '1') msg = 'Open Long';
+		 if(side == 'Sell' && position_idx == '2') msg = 'Open Short';
+		 if(side == 'Sell' && position_idx == '1') msg = 'Close Long';
+		 if(side == 'Buy' && position_idx == '2')  msg = 'Close Short';
+		 var price = $("#input-form-order #price").val();
+		 var qty = $("#input-form-order #qty").val();
+		 if(price == '' || qty == '') {
+			 alert("Price & Qty Check!");
+			 return;
+		 }
+		 orderCreate(msg);
+	}
+	function openLong(){
+		 $("#input-form-order #side").val("Buy");
+		 $("#input-form-order #position_idx").val("1");
+		var param = $("#input-form-order").serialize();
+		alert(param);
+	}
+	function openShort(){
+		$("#input-form-order #side").val("Sell");
+		$("#input-form-order #position_idx").val("2");
+		alert('open short');
+	}
+	function closeLong(){
+		$("#input-form-order #side").val("Sell");
+		$("#input-form-order #position_idx").val("1");
+		alert('close long');
+	}
+	function closeShort(){
+		$("#input-form-order #side").val("Buy");
+		$("#input-form-order #position_idx").val("2");
+		alert('close short');
+	}
+	function orderCreate(msg){
+		var is_yes = confirm("Do you want to " + msg + "?");
+		if(!is_yes) return;
+		var param = $("#input-form-order").serialize();
+		
+		var REQ_TYPE 	= "post";
+		var REQ_URL  	= "../bybit/order/create";
+		$.ajax({
+			type		: REQ_TYPE,
+			url			: REQ_URL,
+			data		: param,
+			dataType	: "json", 
+			async		: true,
+			beforeSend	: function(){/*  loadingShow(); */ },
+			success		: function(res){
+						/* loadingHide(); */
+						var str 		= JSON.stringify(res,null,2);
+						console.log(str);
+						var result 		= res.result;
+						getLoadOrders();
+						if(status <= 100){
+							hideInputModal();
+						}else {
+							ajaxLoadFail(result);
+						}
+			},
+			error		: function() {
+						ajaxError();
+			}
+		});
+	}
+</script>
+ 
 </body>
     
     
