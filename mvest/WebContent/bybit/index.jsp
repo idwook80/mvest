@@ -286,7 +286,7 @@ function bybit(user){
 		success		: function(res){
 					/* loadingHide(); */
 					var str 		= JSON.stringify(res,null,2);
-					//console.log(str);
+					console.log(str);
 					var result 		= res.result;
 					var usdt = res.balances.result.USDT;
 					var positions = res.positions.result;
@@ -332,7 +332,6 @@ var old_positions = [];
 function bybitPositions(user, positions){
 	
 	var old_position = getPositions(positions[0]);
-	
 	for(var i=0; i<positions.length; i++){
 		var old_pos	 = (old_position != null ? old_position[i] : null);
 		var new_pos = positions[i];
@@ -345,7 +344,7 @@ function bybitPositions(user, positions){
 			size = size*-1;
 		}
 		
-		var size2 = (size / (user == 'idwook80' ? 0.15 : 0.001)) / 10;
+		var size2 = (size / (user == 'idwook80' ? 0.1 : 0.05)) / 10;
 		$("."+user+"-entry-price-" + position).text(comma(entry_price.toFixed(1)));
 		$("."+user+"-size-" + position).text(size.toFixed(3) +'(' +size2.toFixed(1) + ")");
 		
@@ -482,13 +481,13 @@ function bybitTag(key, value){
 											 <span><strong>예약버전</strong></span>
 											 <span class="text-right">
 											 	 <span class="btn btn-success" style='line-height:80%'>
-											 	 	<span class="idwook80-entry-price-long" style="font-size:12px;">19,105.0</span><br> 
-											 	 	<span class="idwook80-size-long" style="font-size:8px;">112.005</span>
+											 	 	<span class="idwook80-entry-price-long" style="font-size:12px;">0.0</span><br> 
+											 	 	<span class="idwook80-size-long" style="font-size:8px;">0.0</span>
 											 	 </span>
 											 	 
 											 	  <span class="btn btn-danger" style='line-height:80%'>
-											 	 	<span class="idwook80-entry-price-short" style="font-size:12px;">19,105.0</span><br> 
-											 	 	<span class="idwook80-size-short" style="font-size:8px;">-112.005</span>
+											 	 	<span class="idwook80-entry-price-short" style="font-size:12px;">0.0</span><br> 
+											 	 	<span class="idwook80-size-short" style="font-size:8px;">-0.0</span>
 											 	 </span>
 											 </span>
 										
@@ -521,13 +520,13 @@ function bybitTag(key, value){
 											 <span class="text-right">
 											 
 											 	 <span class="btn btn-success" style='line-height:80%'>
-											 	 	<span class="idwook02-entry-price-long" style="font-size:12px;">19,105.0</span><br> 
-											 	 	<span class="idwook02-size-long"  style="font-size:8px;">112.005</span>
+											 	 	<span class="idwook02-entry-price-long" style="font-size:12px;">0.0</span><br> 
+											 	 	<span class="idwook02-size-long"  style="font-size:8px;">0.0</span>
 											 	 </span>
 											 	 
 											 	  <span class="btn btn-danger" style='line-height:80%'>
-											 	 	<span class="idwook02-entry-price-short" style="font-size:12px;">19,105.0</span><br> 
-											 	 	<span class="idwook02-size-short" style="font-size:8px;">-112.005</span>
+											 	 	<span class="idwook02-entry-price-short" style="font-size:12px;">0.0</span><br> 
+											 	 	<span class="idwook02-size-short" style="font-size:8px;">-0.0</span>
 											 	 </span>
 											 </span>
 										

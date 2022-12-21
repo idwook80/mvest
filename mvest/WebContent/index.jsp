@@ -69,6 +69,9 @@
       <tr>
         <td><a href="lottery/">Lottery</a></td>
       </tr>
+       <tr>
+        <td><a href="road/">Road</a></td>
+      </tr>
       <tr>
         <td><a href="today/">Stock</a></td>
       </tr>
