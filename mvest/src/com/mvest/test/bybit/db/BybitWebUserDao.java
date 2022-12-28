@@ -65,7 +65,7 @@ public class BybitWebUserDao implements DaoModel {
 	public List getList(int start, int offset) throws Exception{
 		return getList(start, offset, null , null);
 	}
-	public List getList(int start, int offset, String where, String orderby) throws Exception{
+	public List<BybitWebUser> getList(int start, int offset, String where, String orderby) throws Exception{
 		QueryBuffer query = new QueryBuffer(DB,TABLE);
 		
 		query.setSelect(COLUMNS);

@@ -285,7 +285,8 @@ function getBalanceListTag(b,p){
 	var profit = p ?  equity - pequity : 0;
 	
 	//var pre	 = p ? ((equity + 0)  - (parseFloat(p.equity) + sum) ) : 0;
-	var reg_date = b.reg_date;
+	//var reg_date = b.reg_date;
+	var reg_date = new Date(b.reg_date).yyyymmdd();
 	var id		 = b.id;
 	var per      = 0;
 	

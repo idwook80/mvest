@@ -39,23 +39,31 @@ public class BybitBalancesAction extends ActionModel {
 			List<BybitWebUser> users = new ArrayList();
 			
 			if(isNotNull(id)) where = " id = '"+id +"'";
-			users = (List) BybitWebUserDao.getInstace().getList(0,100,where, null);
+			users = (List<BybitWebUser>) BybitWebUserDao.getInstace().getList(0,100,where, null);
 			
 			for(int i=0; i<users.size(); i++) {
 				BybitWebUser user = users.get(i);
-				try {
-						JsonElement balance = getWalletBalanceJson(user.getApi_key(), user.getApi_secret());
-						JsonElement positions = getPositions(user.getApi_key(), user.getApi_secret());
-						JsonElement kline = getKline_1(user.getApi_key(), user.getApi_secret());
-					user.balance = balance;
-					user.positions = positions;
-					user.kline 	= kline;
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					setResultError(e.getMessage());
+				if(!user.getId().startsWith("binance")) {
+					try {
+							JsonElement balance = getWalletBalanceJson(user.getApi_key(), user.getApi_secret());
+							JsonElement positions = getPositions(user.getApi_key(), user.getApi_secret());
+							JsonElement kline = getKline_1(user.getApi_key(), user.getApi_secret());
+						user.balance = balance;
+						user.positions = positions;
+						user.kline 	= kline;
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						setResultError(e.getMessage());
+					}
+				}else {
+					users.remove(user);
+					 i -=1;
 				}
+				user.setApi_key("****");
+				user.setApi_secret("****");
 			}
+			
 			addJsonArray("balances", users);
 			
 		}catch(Exception e) {

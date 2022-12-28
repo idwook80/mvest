@@ -27,13 +27,13 @@
 	
 	HashMap<String,Object> paramMap = new HashMap<String,Object>();
 	paramMap.put("curPage", (request.getParameter("curPage") != null ? (String) request.getParameter("curPage") : "1") );
-	paramMap.put("perPage", (request.getParameter("perPage") != null ? (String) request.getParameter("perPage") : "20") );
+	paramMap.put("perPage", (request.getParameter("perPage") != null ? (String) request.getParameter("perPage") : "30") );
 	paramMap.put("search_param", "");
 	paramMap.put("keyword", "");
 	paramMap.put("sort", "");
 	paramMap.put("order", "");
+	paramMap.put("id", (request.getParameter("id") != null ? (String) request.getParameter("id") : "all") );
 	
-
 %>
 	
 <%@ include file="common.jsp" %>
@@ -55,15 +55,19 @@ $(function(){
 	getTime();
 	setInterval(function() {
 		getBalances();
-	}, 1000*10);
+	}, 1000*60);
 	setInterval(function() {
 		getTime();
 	}, 1000);
+	getBalanceList();
 	$("#user_selector").change(function(){
 		//alert($(this).val());
 		alert($(this).children("option:selected").text());
 		user_id = $(this).val();
 		//getLoadOrders();
+		$("#pageForm #id").val(user_id);
+		$("#pageForm #curPage").val("1");
+		getBalanceList();
 	});
 });
 function getTime(){
@@ -85,13 +89,13 @@ function getTimeFormat(time){
 }
  
 function getBalances(){
-	var param 		= $("#pageForm").serialize();
+	//var param 		= $("#pageForm").serialize();
 	var REQ_TYPE 	= "get";
 	var REQ_URL  	= "../bybit/balances";
 	$.ajax({
 		type		: REQ_TYPE,
 		url			: REQ_URL,
-		data		: param,
+		//data		: param,
 		dataType	: "json", 
 		async		: true,
 		beforeSend	: function(){/*  loadingShow(); */ },
@@ -112,9 +116,38 @@ function getBalances(){
 		}
 	});
 }
+function getBalanceBinance(){
+	var param 		= $("#pageForm").serialize();
+	var REQ_TYPE 	= "get";
+	var REQ_URL  	= "../binance/balance?id=binance01";
+	$.ajax({
+		type		: REQ_TYPE,
+		url			: REQ_URL,
+		//data		: param,
+		dataType	: "json", 
+		async		: true,
+		beforeSend	: function(){/*  loadingShow(); */ },
+		success		: function(res){
+					/* loadingHide(); */
+					var str 		= JSON.stringify(res,null,2);
+					//console.log(str);
+					setBalanceBinanceTag(res.Balance);
+					if(status <= 100){
+					}else {
+						ajaxLoadFail(result);
+					}
+		},
+		error		: function() {
+					ajaxError();
+		}
+	});
+}
+var total_balance = 0.0;
+
 function updateBalances(balances){
 	console.log(balances);
 	$(".balances-area").html('');
+	total_balance = 0.0;
 	
 	var kline		= balances[0].kline.result;
 	bybitKline_1(kline[0]);
@@ -128,6 +161,7 @@ function updateBalances(balances){
 		//$(className).fadeOut();
 		//$(className).fadeIn("slow");
 	}
+	getBalanceBinance();
 }
 function getBalanceTag(b){
 	console.log(b);
@@ -136,7 +170,7 @@ function getBalanceTag(b){
 	var usdt	  = b.balance.result.USDT;
 	
 	var tag 	= new StringBuffer();
-	tag.append("<ul class=\"list-group col-sm-4\" data-toggle=\"collapse\" data-target=\"#"+b.user_name+"\">");
+	tag.append("<ul class=\"list-group col-sm-6\" data-toggle=\"collapse\" data-target=\"#"+b.user_name+"\">");
 	tag.append("<li class=\"list-group-item d-flex justify-content-between align-items-center bg-secondary text-light\">");
 	tag.append(" <span><strong>" + b.user_name +"</strong></span>");
 	tag.append(" <span class=\"text-right\">");
@@ -151,6 +185,31 @@ function getBalanceTag(b){
 	
 	tag.append("	</div></ul>");
 	return tag.toString();
+}
+function setBalanceBinanceTag(b){
+	console.log(b);
+	b.user_name = "binance01";
+	b.id = "binance01";
+	var usdt	  = b;
+	total_balance += usdt.equity;
+	usdt.wallet_balance  = total_balance;
+	
+	var tag 	= new StringBuffer();
+	tag.append("<ul class=\"list-group col-sm-6\" data-toggle=\"collapse\" data-target=\"#"+b.user_name+"\">");
+	tag.append("<li class=\"list-group-item d-flex justify-content-between align-items-center bg-secondary text-light\">");
+	tag.append(" <span><strong>" + b.user_name +"</strong></span>");
+	tag.append(" <span class=\"text-right\">");
+		 
+	//tag.append(getPositionTag(b));
+	tag.append(" </span>");
+	
+	tag.append("	 </li>");
+	tag.append("<div  id=\""+b.user_name+"\" class=\"bybit-area-"+b.id+"\" style=\"display:\"> ");
+	
+	tag.append(getBybitBalanceTag(usdt));
+	
+	tag.append("	</div></ul>");
+	$(".balances-area").append(tag.toString());
 }
 function getPositionTag(b){
 	var positions = b.positions;
@@ -195,6 +254,7 @@ function bybitKline_1(kline_1){
 }
 function getBybitBalanceTag(usdt){
 	 var tag 	= new StringBuffer();
+	 total_balance += usdt.equity;
 	 tag.append(bybitTag("예  상", usdt.equity.toFixed(2)) );
 	 tag.append(bybitTag("미실현", usdt.unrealised_pnl.toFixed(2)) );
 
@@ -217,14 +277,14 @@ function getBybitBalanceTag(usdt){
 	}); */
 	return tag.toString();
 }
-var wondollor = 130;
+var wondollor = 1250;
 function bybitTag(key, value){
 	 var tag 	= new StringBuffer();
 	 tag.append("<div><li class=\"list-group-item d-flex justify-content-between align-items-center\">");
 	 tag.append("<span>" + key+ "</span>");
 	 
-	 if(value > 0) tag.append("<span class='text-success p-value'>$" + value+ "</span>");
-	 else tag.append("<span class='text-danger p-value'>$" + value+ "</span>");
+	 if(value > 0) tag.append("<span class='text-success p-value'>$" + comma(value)+ "</span>");
+	 else tag.append("<span class='text-danger p-value'>$" + comma(value)+ "</span>");
 	 
 	 if(value > 0) tag.append("<span class='text-success p-value'>￦" + comma((value * wondollor).toFixed(0))+ "</span>");
 	 else tag.append("<span class='text-danger p-value'>￦" + comma((value * wondollor).toFixed(0))+ "</span>");
@@ -236,11 +296,11 @@ function bybitTag(key, value){
 
 function getBalanceList(){
 	
-	var id = $("#user_selector").val();
+	//var id = $("#user_selector").val();
 
 	
 	var param 		= $("#pageForm").serialize();
-		param 		= "&id="+id;
+		//param 		+= "&id="+id;
 	var REQ_TYPE 	= "get";
 	var REQ_URL  	= "../bybit/balance/list";
 	$.ajax({
@@ -253,9 +313,10 @@ function getBalanceList(){
 		success		: function(res){
 					/* loadingHide(); */
 					var str 		= JSON.stringify(res,null,2);
-					//console.log(str);
+					var vo  		= res.vo;
+					console.log(vo)
+					updatePaging(res.vo); 
 					var balances = res.balances;
-					
 					updateBalanceList(balances);
 					if(status <= 100){
 					}else {
@@ -267,8 +328,12 @@ function getBalanceList(){
 		}
 	});
 }
+function goPage(page){
+ 	 $("#pageForm #curPage").val(page);
+ 	getBalanceList();
+  }
 function updateBalanceList(balances){
-	console.log(balances);
+	//console.log(balances);
 	$(".balance-list-area").html('');
 	
 	for(var i=0; i<balances.length; i++){
@@ -278,9 +343,47 @@ function updateBalanceList(balances){
 	}
 }
 function getBalanceListTag(b,p){
+	var deposit = p ? parseFloat(p.deposit) : 0;
+	var withdraw = p ? parseFloat(p.withdraw) : 0;
+	var psum = deposit - withdraw;
+	var csum = parseFloat(b.deposit) - parseFloat(b.withdraw) 
+	var equity = parseFloat(b.equity);
+	var pequity = p ? parseFloat(p.equity) + psum : 0;
+	var profit = p ?  equity - pequity : 0;
+	
+	var reg_date = new Date(b.reg_date).yyyymmdd();
+	var id		 = b.id;
+	var per      = 0;
+	
+	
+	if(p) per = profit / ( pequity / 100);
+	
+	 var tag 	= new StringBuffer();
+	 tag.append("<a href=\"#\" class=\"list-group-item list-group-item-action flex-column align-items-start\">");
+	 tag.append("<div class=\"d-flex w-100 justify-content-between\">");
+	 tag.append("<pre class=\"mb-1\" style=\"text-align: left;\">"+reg_date+" </pre>");
+	 tag.append("<strong style=\"text-align: center;\" class=\"binance-price\">$"+comma(equity.toFixed(0))+"</strong>");
+	 if(per < 0) tag.append("<strong class=\"mb-1 text-danger\">"+per.toFixed(2)+"% </strong>");
+	 else tag.append("<strong class=\"mb-1 text-success\">"+per.toFixed(2)+"% </strong>");
+	 tag.append(" </div>");
+	 tag.append("<div class=\"d-flex w-100 justify-content-between\">");
+	 tag.append("<small class=\"text-secondary\">"+id+"</small>");
+	 
+	 if(csum < 0 ) tag.append(" <small class=\"text-danger\">"+csum.toFixed(2)+"</small>");
+	 else tag.append(" <small class=\"text-success\">"+csum.toFixed(2)+"</small>");
+	 
+	 if(profit < 0 ) tag.append(" <small class=\"text-danger\">"+profit.toFixed(2)+"</small>");
+	 else tag.append(" <small class=\"text-success\">"+profit.toFixed(2)+"</small>");
+	 
+	 tag.append(" </div>");
+	 tag.append(" </a>");
+	 
+	 return tag.toString();
+}
+function getBalanceListTag2(b,p){
 	var equity = parseFloat(b.equity);
 	var pre	 = p ? (equity - parseFloat(p.equity)) : 0;
-	var reg_date = b.reg_date;
+	var reg_date = new Date(b.reg_date).yyyymmdd();
 	var id		 = b.id;
 	var per     = 0;
 	if(p) per = pre / ( parseFloat(p.equity)/ 100);
@@ -289,7 +392,7 @@ function getBalanceListTag(b,p){
 	 tag.append("<a href=\"#\" class=\"list-group-item list-group-item-action flex-column align-items-start\">");
 	 tag.append("<div class=\"d-flex w-100 justify-content-between\">");
 	 tag.append("<pre class=\"mb-1\" style=\"text-align: left;\">"+reg_date+" </pre>");
-	 tag.append("<strong style=\"text-align: center;\" class=\"binance-price\">$"+equity.toFixed(2)+"</strong>");
+	 tag.append("<strong style=\"text-align: center;\" class=\"binance-price\">$"+comma(equity.toFixed(2))+"</strong>");
 	 if(per < 0) tag.append("<strong class=\"mb-1 text-danger\">"+per.toFixed(2)+"% </strong>");
 	 else tag.append("<strong class=\"mb-1 text-success\">"+per.toFixed(2)+"% </strong>");
 	 tag.append(" </div>");
@@ -369,6 +472,8 @@ function getBalanceListTag(b,p){
 	    </div>
 	</div>
 	</div>
+	<hr>
+	 <%@include file="../_paging.jsp" %>
 </div>
 	<!-- Tail Column -->
  <%@ include file="tail.jsp" %>

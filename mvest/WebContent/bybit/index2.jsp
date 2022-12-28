@@ -62,10 +62,12 @@ var user_id = '<%=user_id %>';
 $(function(){
 	$("#input-form-today #to_date").val(today_date);
 /* 	$("#today_date").text(today_date); */
+	//loadBalances();
 	getBalances();
 	
 	getTime();
 	setInterval(function() {
+		//loadBalances();
 		getBalances();
 	}, 1000*10);
 	setInterval(function() {
@@ -97,7 +99,10 @@ function getTime(){
 function getTimeFormat(time){
 	return time < 10 ? "0" + time : ""+time;
 }
- 
+function loadBalances(){
+	bybit('idwook80');
+
+}
  
 function getOrders(id,bpage,blimit){
 	var param 		= $("#pageForm").serialize();
@@ -268,6 +273,154 @@ function getCurrentTag(price, o1, o2){
 	return tag.toString();
 }
 
+function bybit(user){
+	
+	var param 		= $("#pageForm").serialize();
+		param 		+= "&id=" + user;
+	var REQ_TYPE 	= "get";
+	var REQ_URL  	= "../bybit/test";
+	$.ajax({
+		type		: REQ_TYPE,
+		url			: REQ_URL,
+		data		: param,
+		dataType	: "json", 
+		async		: true,
+		beforeSend	: function(){/*  loadingShow(); */ },
+		success		: function(res){
+					/* loadingHide(); */
+					var str 		= JSON.stringify(res,null,2);
+					console.log(str);
+					var result 		= res.result;
+					var usdt = res.balances.result.USDT;
+					var positions = res.positions.result;
+					var kline_1		= res.kline_1.result;
+					bybitBalanceSet(user, usdt);
+					bybitPositions(user, positions);
+					bybitKline_1(kline_1[0]);
+					if(status <= 100){
+					}else {
+						ajaxLoadFail(result);
+					}
+		},
+		error		: function() {
+					ajaxError();
+		}
+	});
+}
+
+
+function bybitKline_1(kline_1){
+	var open_price 	= kline_1.open;
+	var close_price = kline_1.close;
+	var volume = kline_1.volume;
+	current_price = close_price;
+	
+	if(close_price < open_price){
+		$(".current_price").html("<i class=\"fas fa-arrow-down text-danger\"></i><span class=\"text-danger\"> "+comma(close_price.toFixed(1))+"</span>");
+	}else {
+		$(".current_price").html("<i class=\"fas fa-arrow-up text-success\"></i><span class=\"text-success\"> "+comma(close_price.toFixed(1))+"</span>");
+	}
+	if(volume > 100){
+		$(".current_volume").text(volume.toFixed(2));
+	}else {
+		$(".current_volume").text(volume.toFixed(2));
+	}
+	$(".current_price").fadeOut();
+	$(".current_price").fadeIn("slow");
+	$(".current_volume").fadeOut();
+	$(".current_volume").fadeIn("slow");
+	setReloadOrder(p_id);
+	
+
+}
+var old_positions = [];
+function bybitPositions(user, positions){
+	
+	var old_position = getPositions(positions[0]);
+	for(var i=0; i<positions.length; i++){
+		var old_pos	 = (old_position != null ? old_position[i] : null);
+		var new_pos = positions[i];
+		var entry_price = new_pos.entry_price;
+		var side = new_pos.side;
+		var size = new_pos.size;
+		var position =  "long";
+		if(side == 'Sell'){
+			position = "short";
+			size = size*-1;
+		}
+		
+		var size2 = (size / (user == 'idwook80' ? 0.1 : 0.05)) / 10;
+		$("."+user+"-entry-price-" + position).text(comma(entry_price.toFixed(1)));
+		$("."+user+"-size-" + position).text(size.toFixed(3) +'(' +size2.toFixed(1) + ")");
+		
+		var changed = (old_pos != null ? new_pos.size == old_pos.size : true);
+		if(!changed){
+		  	$("."+user+"-entry-price-" + position).fadeOut(100, function(){
+				$(this).fadeIn(2000);
+			});
+			$("."+user+"-size-" + position).fadeOut(100, function(){
+				$(this).fadeIn(2000);
+			}); 
+			getLoadOrders();
+		}
+	}
+	setPositions(positions);
+	if(user == 'idwook80') bybit('idwook02');
+}
+function setPositions(positions){
+	var exists = false;
+	for(var i=0; i<old_positions.length; i++){
+		var p = old_positions[i];
+		if(positions[0].user_id == p[0].user_id) {
+			exists = true;
+			old_positions[i] = positions;
+			break;
+		}
+	}
+	if(!exists) old_positions.push(positions);
+}
+function getPositions(position){
+	for(var i=0; i<old_positions.length; i++){
+		var p = old_positions[i];
+		if(position.user_id == p[0].user_id) return p;
+	}
+	return null;
+}
+
+var t_equity = 0;
+function bybitBalanceSet(user, usdt){
+	var className = ".bybit-area-"+user
+	var count = 0;
+	$(className).html('');
+	$(className).append(bybitTag("예상잔고", usdt.equity.toFixed(2)) );
+	if(user == 'idwook80') t_equity = usdt.equity;
+	else {
+		t_equity += usdt.equity;
+		/* $(".t_equity").text(comma(t_equity.toFixed(2)));
+		$(".t_equity_won").text(comma((t_equity * wondollor).toFixed(0))); */
+	}
+	
+	
+}
+var wondollor = 0.125;
+function bybitTag(key, value){
+	 var tag 	= new StringBuffer();
+	 tag.append("<div><li class=\"list-group-item d-flex justify-content-between align-items-center\">");
+	 tag.append("<span>" + key+ "</span>");
+	 
+	 if(value > 0) tag.append("<span class='text-success p-value'>$" + value+ "</span>");
+	 else tag.append("<span class='text-danger p-value'>$" + value+ "</span>");
+	 
+	 if(value > 0) tag.append("<span class='text-success p-value'>￦" + comma((value * wondollor).toFixed(0))+ "</span>");
+	 else tag.append("<span class='text-danger p-value'>￦" + comma((value * wondollor).toFixed(0))+ "</span>");
+	 
+	 tag.append("</li></div>");
+	 
+ 	return tag.toString();
+ 	
+}
+
+
 
 function getBalances(){
 	var param 		= $("#pageForm").serialize();
@@ -346,7 +499,7 @@ function getBalanceBinance(){
 var total_balance = 0.0;
 
 function updateBalances(balances){
-	//console.log(balances);
+	console.log(balances);
 	$(".balances-area").html('');
 	total_balance = 0.0;
 	
@@ -365,7 +518,7 @@ function updateBalances(balances){
 	getBalanceBinance();
 }
 function getBalanceTag(b){
-	//console.log(b);
+	console.log(b);
 	if(b.id.startsWith('binance')) return;
 	var positions = b.positions;
 	var usdt	  = b.balance.result.USDT;
@@ -388,7 +541,7 @@ function getBalanceTag(b){
 	return tag.toString();
 }
 function setBalanceBinanceTag(b){
-	//console.log(b);
+	console.log(b);
 	b.user_name = "binance01";
 	b.id = "binance01";
 	var usdt	  = b;
@@ -455,7 +608,6 @@ function bybitKline_1(kline_1){
 	$(".current_price").fadeIn("slow");
 	$(".current_volume").fadeOut();
 	$(".current_volume").fadeIn("slow");
-	setReloadOrder(p_id);
 }
 function getBybitBalanceTag(usdt){
 	 var tag 	= new StringBuffer();
@@ -515,6 +667,92 @@ function bybitTag(key, value){
  	<hr>
  	<div class="row balances-area">
  	</div>
+  	<hr>
+ 	<div class="row">
+	 
+		<div class="col-md-6">
+			<div class="row">
+					<div class="container-fluid">
+					 <div class="row">
+					  <!-- Right Column -->
+					     	 <%-- <%@ include file="right.jsp" %>  --%>
+					    <div class="col-sm-12">
+					  		<div class="row">
+					  				
+				  					<ul class="list-group col-sm-12">
+										  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
+											 <span><strong>예약버전</strong></span>
+											 <span class="text-right">
+											 	 <span class="btn btn-success" style='line-height:80%'>
+											 	 	<span class="idwook80-entry-price-long" style="font-size:12px;">0.0</span><br> 
+											 	 	<span class="idwook80-size-long" style="font-size:8px;">0.0</span>
+											 	 </span>
+											 	 
+											 	  <span class="btn btn-danger" style='line-height:80%'>
+											 	 	<span class="idwook80-entry-price-short" style="font-size:12px;">0.0</span><br> 
+											 	 	<span class="idwook80-size-short" style="font-size:8px;">-0.0</span>
+											 	 </span>
+											 </span>
+										
+		  								 </li>
+										  <div class="bybit-area-idwook80" style="display:">
+					  					  </div>
+								 	</ul>
+					  			 
+					  		</div>
+						</div>
+						  <!-- Right Column -->
+								<%--  <%@ include file="right.jsp" %>  --%>
+						  <!-- Right Column -->
+					   </div>
+					</div>
+			</div>
+		</div>
+		<hr>
+		
+		
+		
+		<div class="col-md-6">
+			<div class="row">
+					<div class="container-fluid">
+					 <div class="row">
+					  <!-- Right Column -->
+					     	 <%-- <%@ include file="right.jsp" %>  --%>
+					    <div class="col-sm-12">
+					  		<div class="row">
+				  					<ul class="list-group col-sm-12">
+										  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
+											 <span><strong>자동버전</strong></span>
+											 <span class="text-right">
+											 
+											 	 <span class="btn btn-success" style='line-height:80%'>
+											 	 	<span class="idwook02-entry-price-long" style="font-size:12px;">0.0</span><br> 
+											 	 	<span class="idwook02-size-long"  style="font-size:8px;">0.0</span>
+											 	 </span>
+											 	 
+											 	  <span class="btn btn-danger" style='line-height:80%'>
+											 	 	<span class="idwook02-entry-price-short" style="font-size:12px;">0.0</span><br> 
+											 	 	<span class="idwook02-size-short" style="font-size:8px;">-0.0</span>
+											 	 </span>
+											 </span>
+										
+		  								 </li>
+										  <div class="bybit-area-idwook02" style="display:">
+					  					  </div>
+								 	</ul>
+					  		</div>
+					     
+						</div>
+						  <!-- Right Column -->
+								<%--  <%@ include file="right.jsp" %>  --%>
+						  <!-- Right Column -->
+					   </div>
+					</div>
+			</div>
+		</div>
+ 	</div>
+ 	
+ 	
  	
 	<hr>
 	<div class="col-sm-12">

@@ -62,11 +62,10 @@ var user_id = '<%=user_id %>';
 $(function(){
 	$("#input-form-today #to_date").val(today_date);
 /* 	$("#today_date").text(today_date); */
-	getBalances();
-	
+	loadBalances();
 	getTime();
 	setInterval(function() {
-		getBalances();
+		loadBalances();
 	}, 1000*10);
 	setInterval(function() {
 		getTime();
@@ -97,7 +96,10 @@ function getTime(){
 function getTimeFormat(time){
 	return time < 10 ? "0" + time : ""+time;
 }
- 
+function loadBalances(){
+	bybit('idwook80');
+
+}
  
 function getOrders(id,bpage,blimit){
 	var param 		= $("#pageForm").serialize();
@@ -268,11 +270,12 @@ function getCurrentTag(price, o1, o2){
 	return tag.toString();
 }
 
-
-function getBalances(){
+function bybit(user){
+	
 	var param 		= $("#pageForm").serialize();
+		param 		+= "&id=" + user;
 	var REQ_TYPE 	= "get";
-	var REQ_URL  	= "../bybit/balances";
+	var REQ_URL  	= "../bybit/test";
 	$.ajax({
 		type		: REQ_TYPE,
 		url			: REQ_URL,
@@ -283,10 +286,14 @@ function getBalances(){
 		success		: function(res){
 					/* loadingHide(); */
 					var str 		= JSON.stringify(res,null,2);
-					//console.log(str);
+					console.log(str);
 					var result 		= res.result;
-					var balances	 = res.balances;
-					updateBalances(balances);
+					var usdt = res.balances.result.USDT;
+					var positions = res.positions.result;
+					var kline_1		= res.kline_1.result;
+					bybitBalanceSet(user, usdt);
+					bybitPositions(user, positions);
+					bybitKline_1(kline_1[0]);
 					if(status <= 100){
 					}else {
 						ajaxLoadFail(result);
@@ -297,144 +304,6 @@ function getBalances(){
 		}
 	});
 }
-
-function updateBalances(balances){
-	console.log(balances);
-	$(".balances-area").html('');
-	total_balance = 0.0;
-	
-	var kline		= balances[0].kline.result;
-	bybitKline_1(kline[0]);
-	for(var i=0; i<balances.length; i++){
-		var balance = balances[i];
-		$(".balances-area").append(getBalanceTag(balance));
-	}
-	for(var i=0; i<balances.length; i++){
-		var b = balances[i];
-		var className = ".bybit-area-"+b.id;
-		//$(className).fadeOut();
-		//$(className).fadeIn("slow");
-	}
-	getBalanceBinance();
-}
-function getBalanceBinance(){
-	var param 		= $("#pageForm").serialize();
-	var REQ_TYPE 	= "get";
-	var REQ_URL  	= "../binance/balance?id=binance01";
-	$.ajax({
-		type		: REQ_TYPE,
-		url			: REQ_URL,
-		data		: param,
-		dataType	: "json", 
-		async		: true,
-		beforeSend	: function(){/*  loadingShow(); */ },
-		success		: function(res){
-					/* loadingHide(); */
-					var str 		= JSON.stringify(res,null,2);
-					//console.log(str);
-					setBalanceBinanceTag(res.Balance);
-					if(status <= 100){
-					}else {
-						ajaxLoadFail(result);
-					}
-		},
-		error		: function() {
-					ajaxError();
-		}
-	});
-}
-var total_balance = 0.0;
-
-function updateBalances(balances){
-	//console.log(balances);
-	$(".balances-area").html('');
-	total_balance = 0.0;
-	
-	var kline		= balances[0].kline.result;
-	bybitKline_1(kline[0]);
-	for(var i=0; i<balances.length; i++){
-		var balance = balances[i];
-		$(".balances-area").append(getBalanceTag(balance));
-	}
-	for(var i=0; i<balances.length; i++){
-		var b = balances[i];
-		var className = ".bybit-area-"+b.id;
-		//$(className).fadeOut();
-		//$(className).fadeIn("slow");
-	}
-	getBalanceBinance();
-}
-function getBalanceTag(b){
-	//console.log(b);
-	if(b.id.startsWith('binance')) return;
-	var positions = b.positions;
-	var usdt	  = b.balance.result.USDT;
-	
-	var tag 	= new StringBuffer();
-	tag.append("<ul class=\"list-group col-sm-6\" data-toggle=\"collapse\" data-target=\"#"+b.user_name+"\">");
-	tag.append("<li class=\"list-group-item d-flex justify-content-between align-items-center bg-secondary text-light\">");
-	tag.append(" <span><strong>" + b.user_name +"</strong></span>");
-	tag.append(" <span class=\"text-right\">");
-		 
-	tag.append(getPositionTag(b));
-	tag.append(" </span>");
-	
-	tag.append("	 </li>");
-	tag.append("<div  id=\""+b.user_name+"\" class=\"bybit-area-"+b.id+"\" style=\"display:\"> ");
-	
-	tag.append(getBybitBalanceTag(usdt));
-	
-	tag.append("	</div></ul>");
-	return tag.toString();
-}
-function setBalanceBinanceTag(b){
-	//console.log(b);
-	b.user_name = "binance01";
-	b.id = "binance01";
-	var usdt	  = b;
-	total_balance += usdt.equity;
-	usdt.wallet_balance  = total_balance;
-	$(".t_equity").text(comma(total_balance.toFixed(2)));
-	$(".t_equity_won").text(comma((total_balance * wondollor).toFixed(0)));
-	
-	var tag 	= new StringBuffer();
-	tag.append("<ul class=\"list-group col-sm-6\" data-toggle=\"collapse\" data-target=\"#"+b.user_name+"\">");
-	tag.append("<li class=\"list-group-item d-flex justify-content-between align-items-center bg-secondary text-light\">");
-	tag.append(" <span><strong>" + b.user_name +"</strong></span>");
-	tag.append(" <span class=\"text-right\">");
-		 
-	//tag.append(getPositionTag(b));
-	tag.append(" </span>");
-	
-	tag.append("	 </li>");
-	tag.append("<div  id=\""+b.user_name+"\" class=\"bybit-area-"+b.id+"\" style=\"display:\"> ");
-	
-	tag.append(getBybitBalanceTag(usdt));
-	
-	tag.append("	</div></ul>");
-	$(".balances-area").append(tag.toString());
-}
-function getPositionTag(b){
-	var positions = b.positions;
-	var default_qty = b.default_qty;
-	var buy = positions.result[0];
-	var sell = positions.result[1];
-	var buySize = (buy.size / parseFloat(default_qty))/10;
-	var sellSize = (sell.size / parseFloat(default_qty))/10;
-	
-	var tag 	= new StringBuffer();
-	tag.append("	 	 <span class=\"btn btn-success\" style='line-height:80%'>");
-	tag.append("	 	 	<span style=\"font-size:12px;\">"+comma(buy.entry_price.toFixed(1))+"</span><br>");
-	tag.append("	 	 	<span style=\"font-size:8px;\">"+buy.size+"(" +buySize.toFixed(1)+")</span>");
-	tag.append("	 	 </span>");
-		 	 
-	tag.append(" 	  <span class=\"btn btn-danger\" style='line-height:80%'>");
-	tag.append("	 	 	<span style=\"font-size:12px;\">"+comma(sell.entry_price.toFixed(1))+"</span><br> ");
-	tag.append("	 	 	<span style=\"font-size:8px;\">-"+sell.size+"("+sellSize.toFixed(1)+")</span>");
-	tag.append("	 	 </span>");
-	return tag.toString();
-}
- 
 function bybitKline_1(kline_1){
 	var open_price 	= kline_1.open;
 	var close_price = kline_1.close;
@@ -456,12 +325,94 @@ function bybitKline_1(kline_1){
 	$(".current_volume").fadeOut();
 	$(".current_volume").fadeIn("slow");
 	setReloadOrder(p_id);
+	
+
 }
-function getBybitBalanceTag(usdt){
-	 var tag 	= new StringBuffer();
-	 total_balance += usdt.equity;
-	 tag.append(bybitTag("예상잔고", usdt.equity.toFixed(2)) );
-	return tag.toString();
+var old_positions = [];
+function bybitPositions(user, positions){
+	
+	var old_position = getPositions(positions[0]);
+	for(var i=0; i<positions.length; i++){
+		var old_pos	 = (old_position != null ? old_position[i] : null);
+		var new_pos = positions[i];
+		var entry_price = new_pos.entry_price;
+		var side = new_pos.side;
+		var size = new_pos.size;
+		var position =  "long";
+		if(side == 'Sell'){
+			position = "short";
+			size = size*-1;
+		}
+		
+		var size2 = (size / (user == 'idwook80' ? 0.1 : 0.05)) / 10;
+		$("."+user+"-entry-price-" + position).text(comma(entry_price.toFixed(1)));
+		$("."+user+"-size-" + position).text(size.toFixed(3) +'(' +size2.toFixed(1) + ")");
+		
+		var changed = (old_pos != null ? new_pos.size == old_pos.size : true);
+		if(!changed){
+		  	$("."+user+"-entry-price-" + position).fadeOut(100, function(){
+				$(this).fadeIn(2000);
+			});
+			$("."+user+"-size-" + position).fadeOut(100, function(){
+				$(this).fadeIn(2000);
+			}); 
+			getLoadOrders();
+		}
+	}
+	setPositions(positions);
+	if(user == 'idwook80') bybit('idwook02');
+}
+function setPositions(positions){
+	var exists = false;
+	for(var i=0; i<old_positions.length; i++){
+		var p = old_positions[i];
+		if(positions[0].user_id == p[0].user_id) {
+			exists = true;
+			old_positions[i] = positions;
+			break;
+		}
+	}
+	if(!exists) old_positions.push(positions);
+}
+function getPositions(position){
+	for(var i=0; i<old_positions.length; i++){
+		var p = old_positions[i];
+		if(position.user_id == p[0].user_id) return p;
+	}
+	return null;
+}
+
+var t_equity = 0;
+function bybitBalanceSet(user, usdt){
+	var className = ".bybit-area-"+user
+	var count = 0;
+	$(className).html('');
+	//$(className).append(bybitTag("실현잔고", usdt.wallet_balance.toFixed(2)) );
+	//$(className).append(bybitTag("실현금액", usdt.realised_pnl.toFixed(2)) );
+	//$(className).append(bybitTag("미실현액", usdt.unrealised_pnl.toFixed(2)) );
+	$(className).append(bybitTag("예상잔고", usdt.equity.toFixed(2)) );
+	/* $(className).append(bybitTag("이용가능",usdt.available_balance.toFixed(2)) ); */
+	/* $(".bybit-area").append(bybitTag("used_margin",usdt.used_margin.toFixed(2)));
+	$(".bybit-area").append(bybitTag("order_margin",usdt.order_margin.toFixed(2)));
+	$(".bybit-area").append(bybitTag("position_margin",usdt.position_margin.toFixed(2)));
+	$(".bybit-area").append(bybitTag("occ_closing_fee",usdt.occ_closing_fee.toFixed(2)));
+	$(".bybit-area").append(bybitTag("occ_funding_fee",usdt.occ_funding_fee.toFixed(2)));
+	
+	$(".bybit-area").append(bybitTag("cum_realised_pnl",usdt.cum_realised_pnl.toFixed(2)));
+	$(".bybit-area").append(bybitTag("given_cash",usdt.given_cash.toFixed(2)));
+	$(".bybit-area").append(bybitTag("service_cash",usdt.service_cash.toFixed(2))); */
+	
+	/* $(className + " .p-value").slideUp(500,function(){
+		$(this).slideDown(1000);
+	}); */
+	if(user == 'idwook80') t_equity = usdt.equity;
+	else {
+		t_equity += usdt.equity;
+		$(".t_equity").text(comma(t_equity.toFixed(2)));
+		$(".t_equity_won").text(comma((t_equity * wondollor).toFixed(0)));
+	}
+	
+	
 }
 var wondollor = 0.125;
 function bybitTag(key, value){
@@ -469,15 +420,16 @@ function bybitTag(key, value){
 	 tag.append("<div><li class=\"list-group-item d-flex justify-content-between align-items-center\">");
 	 tag.append("<span>" + key+ "</span>");
 	 
-	 if(value > 0) tag.append("<span class='text-success p-value'>$" + comma(value)+ "</span>");
-	 else tag.append("<span class='text-danger p-value'>$" + comma(value)+ "</span>");
+	 if(value > 0) tag.append("<span class='text-success p-value'>$" + value+ "</span>");
+	 else tag.append("<span class='text-danger p-value'>$" + value+ "</span>");
 	 
-	 if(value > 0) tag.append("<span class='text-success p-value'>￦" + comma((value * wondollor).toFixed(1))+ "</span>");
-	 else tag.append("<span class='text-danger p-value'>￦" + comma((value * wondollor).toFixed(1))+ "</span>");
+	 if(value > 0) tag.append("<span class='text-success p-value'>￦" + comma((value * wondollor).toFixed(0))+ "</span>");
+	 else tag.append("<span class='text-danger p-value'>￦" + comma((value * wondollor).toFixed(0))+ "</span>");
 	 
 	 tag.append("</li></div>");
 	 
  	return tag.toString();
+ 	
 }
 </script>
 
@@ -512,9 +464,89 @@ function bybitTag(key, value){
 	 		<span><strong id="today_time">000000-00</strong></span>
 	 	</div>  -->
  	</div>
- 	<hr>
- 	<div class="row balances-area">
+  	<hr>
+ 	<div class="row">
+	 
+		<div class="col-md-6">
+			<div class="row">
+					<div class="container-fluid">
+					 <div class="row">
+					  <!-- Right Column -->
+					     	 <%-- <%@ include file="right.jsp" %>  --%>
+					    <div class="col-sm-12">
+					  		<div class="row">
+					  				
+				  					<ul class="list-group col-sm-12">
+										  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
+											 <span><strong>예약버전</strong></span>
+											 <span class="text-right">
+											 	 <span class="btn btn-success" style='line-height:80%'>
+											 	 	<span class="idwook80-entry-price-long" style="font-size:12px;">0.0</span><br> 
+											 	 	<span class="idwook80-size-long" style="font-size:8px;">0.0</span>
+											 	 </span>
+											 	 
+											 	  <span class="btn btn-danger" style='line-height:80%'>
+											 	 	<span class="idwook80-entry-price-short" style="font-size:12px;">0.0</span><br> 
+											 	 	<span class="idwook80-size-short" style="font-size:8px;">-0.0</span>
+											 	 </span>
+											 </span>
+										
+		  								 </li>
+										  <div class="bybit-area-idwook80" style="display:">
+					  					  </div>
+								 	</ul>
+					  			 
+					  		</div>
+						</div>
+						  <!-- Right Column -->
+								<%--  <%@ include file="right.jsp" %>  --%>
+						  <!-- Right Column -->
+					   </div>
+					</div>
+			</div>
+		</div>
+		<hr>
+		<div class="col-md-6">
+			<div class="row">
+					<div class="container-fluid">
+					 <div class="row">
+					  <!-- Right Column -->
+					     	 <%-- <%@ include file="right.jsp" %>  --%>
+					    <div class="col-sm-12">
+					  		<div class="row">
+				  					<ul class="list-group col-sm-12">
+										  <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-light">
+											 <span><strong>자동버전</strong></span>
+											 <span class="text-right">
+											 
+											 	 <span class="btn btn-success" style='line-height:80%'>
+											 	 	<span class="idwook02-entry-price-long" style="font-size:12px;">0.0</span><br> 
+											 	 	<span class="idwook02-size-long"  style="font-size:8px;">0.0</span>
+											 	 </span>
+											 	 
+											 	  <span class="btn btn-danger" style='line-height:80%'>
+											 	 	<span class="idwook02-entry-price-short" style="font-size:12px;">0.0</span><br> 
+											 	 	<span class="idwook02-size-short" style="font-size:8px;">-0.0</span>
+											 	 </span>
+											 </span>
+										
+		  								 </li>
+										  <div class="bybit-area-idwook02" style="display:">
+					  					  </div>
+								 	</ul>
+					  		</div>
+					     
+						</div>
+						  <!-- Right Column -->
+								<%--  <%@ include file="right.jsp" %>  --%>
+						  <!-- Right Column -->
+					   </div>
+					</div>
+			</div>
+		</div>
  	</div>
+ 	
+ 	
  	
 	<hr>
 	<div class="col-sm-12">

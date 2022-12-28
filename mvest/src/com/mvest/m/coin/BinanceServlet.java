@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
+import com.mvest.m.coin.action.BinanceBalanceAction;
 import com.mvest.m.coin.action.BinanceCancelOrderAction;
 import com.mvest.m.coin.action.BinanceOrdersAction;
 import com.mvest.m.coin.action.BinanceTestAction;
@@ -23,7 +24,8 @@ import com.mvest.model.ServletModel;
 	"/binance/test",
 	"/binance/price",
 	"/binance/orders",
-	"/binance/order/cancel"
+	"/binance/order/cancel",
+	"/binance/balance"
 })
 public class BinanceServlet extends ServletModel {
 	private static final long serialVersionUID = 1L;
@@ -61,6 +63,7 @@ public class BinanceServlet extends ServletModel {
 		case "price"			:  priceAction(request,response); break;
 		case "orders"			:  getOrdersAction(request,response); break;
 		case "order/cancel"		:  cancelOrderAction(request,response); break;
+		case "balance"			:  getBalanceAction(request,response); break;
 		/*case "list/all"		:  listAllAction(request,response); break;
 		case "search"			:  selectAction(request, response); break;
 		case "add" 				:  insertAction(request, response); break;
@@ -85,6 +88,10 @@ public class BinanceServlet extends ServletModel {
 	}
 	public void cancelOrderAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		BinanceCancelOrderAction action = new BinanceCancelOrderAction();
+		action.execute(request, response);
+	}
+	public void getBalanceAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		BinanceBalanceAction action = new BinanceBalanceAction();
 		action.execute(request, response);
 	}
 	

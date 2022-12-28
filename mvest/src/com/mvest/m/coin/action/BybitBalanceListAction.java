@@ -52,7 +52,7 @@ public class BybitBalanceListAction extends ActionModel {
 			if(isNotNull(where)) where += " AND ";
 			where += " to_date = '"+to_date +"'";
 		}*/
-		numPerPage = 30;
+		//numPerPage = 30;
 		
 		if(isNull(where)) where = null;
 		if(isNull(orderby)) orderby = null;
