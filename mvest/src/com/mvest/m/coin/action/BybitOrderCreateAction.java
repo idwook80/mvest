@@ -1,27 +1,17 @@
 package com.mvest.m.coin.action;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.google.gson.internal.LinkedTreeMap;
 import com.mvest.model.ActionModel;
-import com.mvest.test.bybit.KlineRest;
-import com.mvest.test.bybit.OrderRest;
-import com.mvest.test.bybit.PositionRest;
-import com.mvest.test.bybit.WalletRest;
+import com.mvest.test.bybit.OrderRest_V3;
 import com.mvest.test.bybit.db.BybitDao;
-
-import io.contek.invoker.bybit.api.rest.user.GetOrder;
-import io.vavr.API;
 
 public class BybitOrderCreateAction extends ActionModel {
 	public static String API_KEY 		= null;
@@ -100,7 +90,10 @@ public class BybitOrderCreateAction extends ActionModel {
 	}
 	public String createOrder(String symbol,String order_type, String side, String position_idx, double price, double qty) throws Exception{
 		System.out.println(symbol+"," + order_type + "," + side+","+position_idx+","+price+","+qty);
-		String str = OrderRest.createOrder(API_KEY, SECRET_KEY, symbol, order_type, side, position_idx, price, qty);
+		//String str = OrderRest.createOrder(API_KEY, SECRET_KEY, symbol, order_type, side, position_idx, price, qty);
+		
+		String str = OrderRest_V3.placeOrder(API_KEY, SECRET_KEY, symbol, order_type, side, position_idx, price, qty);
+		
 		JsonParser parser = new JsonParser();
         JsonElement el =  parser.parse(str);
         addJsonObject("response", el);

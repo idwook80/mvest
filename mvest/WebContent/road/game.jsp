@@ -325,7 +325,13 @@ function regMyWins(){
 	   		<span><a class="btn btn-info" href="index.jsp">리스트 돌아가기</a></span>
 	   		<span><a class="btn btn-success" href="javascript:void(0)" onclick="game();">다시 추출하기</a></span>
 	   </div>
-   </div>
+     </div>
+     <br>
+	  <div class="row">
+	   <video class="w-100" autoplay loop muted>
+			  <source src="http://218.148.204.16:8901/list/HDD1/test/TV/%eb%b2%95%ec%a9%90.E02.230107.1080p.H264-F1RST.mp4" type="video/mp4" />
+			</video>
+     </div>
 
 </div>
 

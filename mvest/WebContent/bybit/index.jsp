@@ -114,10 +114,8 @@ function getOrders(id,bpage,blimit){
 		success		: function(res){
 					/* loadingHide(); */
 					var str 		= JSON.stringify(res,null,2);
-					//console.log(str);
 					var result 		= res.result;
 					var orders 		= res.orders.result.data;
-					//console.log(orders);
 					updateOrders(orders);
 					setReloadOrder(p_id);
 					
@@ -145,7 +143,7 @@ function updateOrders(orders){
 			if(i < sortOrders.length - 1 && current_price > 0){
 				var o2 = sortOrders[i+1];
 				if(order.price > current_price && o2.price < current_price){
-					$(".orders-area").append(getCurrentTag(current_price, order.price, o2.price));
+					$(".orders-area").append(getCurrentTag(current_price.toFixed(0), order.price, o2.price));
 				}
 			}
 		
@@ -242,7 +240,6 @@ function del_order(order_id){
 		success		: function(res){
 					/* loadingHide(); */
 					var str 		= JSON.stringify(res,null,2);
-					console.log(str);
 					var result 		= res.result;
 					getLoadOrders();
 					if(status <= 100){
@@ -283,7 +280,6 @@ function getBalances(){
 		success		: function(res){
 					/* loadingHide(); */
 					var str 		= JSON.stringify(res,null,2);
-					//console.log(str);
 					var result 		= res.result;
 					var balances	 = res.balances;
 					updateBalances(balances);
@@ -299,7 +295,7 @@ function getBalances(){
 }
 
 function updateBalances(balances){
-	console.log(balances);
+	//console.log(balances);
 	$(".balances-area").html('');
 	total_balance = 0.0;
 	
@@ -312,8 +308,6 @@ function updateBalances(balances){
 	for(var i=0; i<balances.length; i++){
 		var b = balances[i];
 		var className = ".bybit-area-"+b.id;
-		//$(className).fadeOut();
-		//$(className).fadeIn("slow");
 	}
 	getBalanceBinance();
 }
@@ -331,7 +325,6 @@ function getBalanceBinance(){
 		success		: function(res){
 					/* loadingHide(); */
 					var str 		= JSON.stringify(res,null,2);
-					//console.log(str);
 					setBalanceBinanceTag(res.Balance);
 					if(status <= 100){
 					}else {
@@ -344,29 +337,30 @@ function getBalanceBinance(){
 	});
 }
 var total_balance = 0.0;
-
-function updateBalances(balances){
-	//console.log(balances);
+var balances;
+function updateBalances(bs){
+	balances = bs;
+	getBalanceBinance();
+}
+function updateBalancess(balances){
+	//this.balances = bs;
 	$(".balances-area").html('');
 	total_balance = 0.0;
 	
 	var kline		= balances[0].kline.result;
 	bybitKline_1(kline[0]);
 	for(var i=0; i<balances.length; i++){
-		var balance = balances[i];
-		$(".balances-area").append(getBalanceTag(balance));
-	}
-	for(var i=0; i<balances.length; i++){
 		var b = balances[i];
-		var className = ".bybit-area-"+b.id;
-		//$(className).fadeOut();
-		//$(className).fadeIn("slow");
+		$(".balances-area").append(getBalanceTag(b));
 	}
-	getBalanceBinance();
+
+	$(".t_equity").text(comma(total_balance.toFixed(2)));
+	$(".t_equity_won").text(comma((total_balance * wondollor).toFixed(0)));
+	//getBalanceBinance();
 }
 function getBalanceTag(b){
 	//console.log(b);
-	if(b.id.startsWith('binance')) return;
+	//if(b.id.startsWith('binance')) return;
 	var positions = b.positions;
 	var usdt	  = b.balance.result.USDT;
 	
@@ -376,7 +370,8 @@ function getBalanceTag(b){
 	tag.append(" <span><strong>" + b.user_name +"</strong></span>");
 	tag.append(" <span class=\"text-right\">");
 		 
-	tag.append(getPositionTag(b));
+	if(positions) tag.append(getPositionTag(b));
+	else tag.append(getPositionTagNull());
 	tag.append(" </span>");
 	
 	tag.append("	 </li>");
@@ -388,11 +383,23 @@ function getBalanceTag(b){
 	return tag.toString();
 }
 function setBalanceBinanceTag(b){
+	var temp 		={};
+	temp.user_name 	= "binance01";
+	temp.id 		= "binance01";
+	temp.positions	= null;
+	temp.balance	= {};
+	temp.balance.result	= {};
+	temp.balance.result.USDT = b;
+	balances.push(temp);
+	updateBalancess(balances);
+}
+function setBalanceBinanceTags(b){
 	//console.log(b);
-	b.user_name = "binance01";
-	b.id = "binance01";
-	var usdt	  = b;
-	total_balance += usdt.equity;
+	var temp = null;
+	b.user_name 	= "binance01";
+	b.id 			= "binance01";
+	var usdt	  	= b;
+	total_balance 	+= usdt.equity;
 	usdt.wallet_balance  = total_balance;
 	$(".t_equity").text(comma(total_balance.toFixed(2)));
 	$(".t_equity_won").text(comma((total_balance * wondollor).toFixed(0)));
@@ -403,7 +410,7 @@ function setBalanceBinanceTag(b){
 	tag.append(" <span><strong>" + b.user_name +"</strong></span>");
 	tag.append(" <span class=\"text-right\">");
 		 
-	//tag.append(getPositionTag(b));
+	tag.append(getPositionTagNull());
 	tag.append(" </span>");
 	
 	tag.append("	 </li>");
@@ -415,12 +422,12 @@ function setBalanceBinanceTag(b){
 	$(".balances-area").append(tag.toString());
 }
 function getPositionTag(b){
-	var positions = b.positions;
+	var positions 	= b.positions;
 	var default_qty = b.default_qty;
-	var buy = positions.result[0];
-	var sell = positions.result[1];
-	var buySize = (buy.size / parseFloat(default_qty))/10;
-	var sellSize = (sell.size / parseFloat(default_qty))/10;
+	var buy 		= positions.result[0];
+	var sell 		= positions.result[1];
+	var buySize 	= (buy.size / parseFloat(default_qty))/10;
+	var sellSize 	= (sell.size / parseFloat(default_qty))/10;
 	
 	var tag 	= new StringBuffer();
 	tag.append("	 	 <span class=\"btn btn-success\" style='line-height:80%'>");
@@ -431,6 +438,20 @@ function getPositionTag(b){
 	tag.append(" 	  <span class=\"btn btn-danger\" style='line-height:80%'>");
 	tag.append("	 	 	<span style=\"font-size:12px;\">"+comma(sell.entry_price.toFixed(1))+"</span><br> ");
 	tag.append("	 	 	<span style=\"font-size:8px;\">-"+sell.size+"("+sellSize.toFixed(1)+")</span>");
+	tag.append("	 	 </span>");
+	return tag.toString();
+}
+
+function getPositionTagNull(){
+	var tag 	= new StringBuffer();
+	tag.append("	 	 <span class=\"btn btn-success\" style='line-height:80%'>");
+	tag.append("	 	 	<span style=\"font-size:12px;\">###.##</span><br>");
+	tag.append("	 	 	<span style=\"font-size:8px;\">##(##)</span>");
+	tag.append("	 	 </span>");
+		 	 
+	tag.append(" 	  <span class=\"btn btn-danger\" style='line-height:80%'>");
+	tag.append("	 	 	<span style=\"font-size:12px;\">###.##</span><br> ");
+	tag.append("	 	 	<span style=\"font-size:8px;\">-##(##)</span>");
 	tag.append("	 	 </span>");
 	return tag.toString();
 }
@@ -505,12 +526,6 @@ function bybitTag(key, value){
 			 	<i style="font-size:8px;">(<span id="today_time">00:00:00</span>)</i>
 			</span>
 		</div>
-	 	<!-- <div class="col-sm-4 text-right" style="font-size:10px;">
-	 		<span class="text-right text-dark">
-	 	 	<strong id="today_date">0000-00-00</strong>
-	 		</span><br>
-	 		<span><strong id="today_time">000000-00</strong></span>
-	 	</div>  -->
  	</div>
  	<hr>
  	<div class="row balances-area">
