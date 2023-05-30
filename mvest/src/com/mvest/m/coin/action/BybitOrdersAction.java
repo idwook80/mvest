@@ -43,7 +43,9 @@ public class BybitOrdersAction extends ActionModel {
 		
 		String bpage	= getParameter("bpage");
 		String blimit	= getParameter("blimit");
+		String symbol   = getParameter("symbol");
 		
+		if(isNull(symbol)) symbol = "BTCUSDT";
 		try {
 			Map userMap = (Map)BybitDao.getInstace().select(id);
 			if(userMap != null) {
@@ -73,7 +75,7 @@ public class BybitOrdersAction extends ActionModel {
 				int l = 20;
 				if(bpage != null) p = Integer.parseInt(bpage);
 				if(blimit != null) l = Integer.parseInt(blimit);
-				String orders = getRoders(p, l);
+				String orders = getRoders(p, l, symbol);
 				setResultOk();
 			}else {
 				 setResultFail("Not Found User");
@@ -87,11 +89,11 @@ public class BybitOrdersAction extends ActionModel {
 		outJsonObject();
 		
 	}
-	public String getRoders() throws Exception{
-		return getRoders(1,50); 
+	public String getRoders(String symbol) throws Exception{
+		return getRoders(1,50, symbol); 
 	}
-	public String getRoders(int page, int limit) throws Exception{
-		String str = OrderRest.getActiveOrder(API_KEY, SECRET_KEY , "BTCUSDT", page , limit);
+	public String getRoders(int page, int limit, String symbol) throws Exception{
+		String str = OrderRest.getActiveOrder(API_KEY, SECRET_KEY , symbol, page , limit);
 		JsonParser parser = new JsonParser();
 	   // Gson gson = new GsonBuilder().setPrettyPrinting().create();
         //return gson.toJson(el);

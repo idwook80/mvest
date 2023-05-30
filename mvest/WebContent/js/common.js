@@ -69,7 +69,8 @@ function isNum(orgNum)
 
 
 function comma(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+	//return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
 }
 
 //공백
@@ -183,6 +184,16 @@ Date.prototype.hhmm = function() {
 	var mm = this.getMinutes().toString();
 	return (hh[1] ? hh : "0"+hh[0]) + ":" + (mm[1] ? mm : "0"+mm[0]);
 }
+
+Date.prototype.hhmmss = function() {
+	var hh = this.getHours().toString();
+	var mm = this.getMinutes().toString();
+	var ss = this.getSeconds().toString();
+	return (hh[1] ? hh : "0"+hh[0]) + ":" + (mm[1] ? mm : "0"+mm[0]) + ":" + (ss[1] ? ss : "0"+ss[0]);
+}
 Date.prototype.yyyymmddhhmm = function(){
 	return this.yyyymmdd() + " " + this.hhmm();
+}
+Date.prototype.yyyymmddhhmmss = function(){
+	return this.yyyymmdd() + " " + this.hhmmss();
 }

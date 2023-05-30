@@ -34,8 +34,8 @@ public class BybitWebUserDao implements DaoModel {
 	public int delete(Object o) throws Exception{
 		return 0;
 	}
-	
-	public Object select(String id) throws Exception{
+	/** return BybitWebUser **/
+	public Object  select(String id) throws Exception{
 		//BotConfig config = new BotConfig();
 		WebDBManager mgr = WebDBManager.getInstance();
 		StringBuffer queryBuffer = new StringBuffer();
@@ -45,7 +45,15 @@ public class BybitWebUserDao implements DaoModel {
 			queryBuffer.append(" WHERE A.id = '"+ id +"'");
 		}
 		
-		return mgr.selectHashMap(queryBuffer.toString());
+		HashMap row = mgr.selectHashMap(queryBuffer.toString());
+		QueryBuffer query = new QueryBuffer(DB,TABLE);
+		query.setSelect(COLUMNS);
+		
+		
+		BybitWebUser c = new BybitWebUser();
+		query.setSelectObject(row, c);
+		
+		return c;
 		/*if(map != null) {
 			config.setMap(map);
 		}
@@ -67,7 +75,6 @@ public class BybitWebUserDao implements DaoModel {
 	}
 	public List<BybitWebUser> getList(int start, int offset, String where, String orderby) throws Exception{
 		QueryBuffer query = new QueryBuffer(DB,TABLE);
-		
 		query.setSelect(COLUMNS);
 		if(where != null) query.setWhere(where);
 		if(orderby != null) query.setOrder(orderby);

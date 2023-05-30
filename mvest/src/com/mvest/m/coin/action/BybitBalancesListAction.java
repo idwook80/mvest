@@ -21,7 +21,7 @@ import com.mvest.test.bybit.WalletRest;
 import com.mvest.test.bybit.db.BybitWebUserDao;
 import com.mvest.test.bybit.model.BybitWebUser;
 
-public class BybitBalancesAction extends ActionModel {
+public class BybitBalancesListAction extends ActionModel {
 	@Override
 	public void perform(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
@@ -39,13 +39,17 @@ public class BybitBalancesAction extends ActionModel {
 		
 		if(isNull(symbol)) symbol = "BTCUSDT";
 		if(isNull(coin))   coin   = "USDT";
-		if(isNull(id)) return;
 	 
 		try {
 			addJsonObjectProperty("exchange_usd", String.valueOf(ExchangeScraping.usd));
-			 
-			BybitWebUser user = (BybitWebUser) BybitWebUserDao.getInstace().select(id);
 			
+			List<BybitWebUser> users = new ArrayList();
+			
+			if(isNotNull(id)) where = " id = '"+id +"'";
+			users = (List<BybitWebUser>) BybitWebUserDao.getInstace().getList(0,100,where, null);
+			
+			for(int i=0; i<users.size(); i++) {
+				BybitWebUser user = users.get(i);
 				if(!user.getId().startsWith("binance")) {
 					try {
 							JsonElement balance = getWalletBalanceJson(user.getApi_key(), user.getApi_secret(), coin);
@@ -60,17 +64,18 @@ public class BybitBalancesAction extends ActionModel {
 						setResultError(e.getMessage());
 					}
 				}else {
+					users.remove(user);
+					 i -=1;
 				}
 				user.setApi_key("****");
 				user.setApi_secret("****");
+			}
 			
-			addJsonObject("balance", user);
+			addJsonArray("balances", users);
 			
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
-		
-		
 		outJsonObject();
   
 		

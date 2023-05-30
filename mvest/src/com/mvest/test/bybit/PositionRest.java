@@ -36,7 +36,7 @@ public class PositionRest {
         String tt = Long.toString(ZonedDateTime.now().toInstant().toEpochMilli());
         map.put("api_key", api_key);
         map.put("timestamp", tt);
-        map.put("symbol", "BTCUSDT");
+        map.put("symbol", symbol);
         String signature = BybitClient.genSign(api_secret,map);
         map.put("sign", signature);
         

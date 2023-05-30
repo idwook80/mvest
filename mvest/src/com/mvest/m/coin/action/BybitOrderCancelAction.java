@@ -32,7 +32,7 @@ public class BybitOrderCancelAction extends ActionModel {
 		String user		= getParameter("user");
 		
 		String order_id  =  getParameter("order_id");
-		String symbol  =  getParameter("symbol");
+		String symbol    =  getParameter("symbol");
 		
 		try {
 			Map userMap = (Map)BybitDao.getInstace().select(id);

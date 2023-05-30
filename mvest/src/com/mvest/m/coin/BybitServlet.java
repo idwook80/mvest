@@ -1,6 +1,8 @@
 package com.mvest.m.coin;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -14,10 +16,12 @@ import com.mvest.m.coin.action.BinanceTestAction;
 import com.mvest.m.coin.action.BybitBalanceListAction;
 import com.mvest.m.coin.action.BybitBalanceListDailyAction;
 import com.mvest.m.coin.action.BybitBalancesAction;
+import com.mvest.m.coin.action.BybitBalancesListAction;
 import com.mvest.m.coin.action.BybitOrderCancelAction;
 import com.mvest.m.coin.action.BybitOrderCreateAction;
 import com.mvest.m.coin.action.BybitOrdersAction;
 import com.mvest.m.coin.action.BybitTestAction;
+import com.mvest.m.coin.action.ExchangeScraping;
 import com.mvest.model.ServletModel;
 
 /**
@@ -30,6 +34,7 @@ import com.mvest.model.ServletModel;
 	"/bybit/order/cancel",
 	"/bybit/order/create",
 	"/bybit/balances",
+	"/bybit/balances/list",
 	"/bybit/balance/list",
 	"/bybit/balance/list/daily"
 })
@@ -37,6 +42,7 @@ public class BybitServlet extends ServletModel {
 	private static final long serialVersionUID = 1L;
 	public static final Logger LOG			= Logger.getLogger(BybitServlet.class);
 	public static final String URL_FOLDER = "/bybit/";
+	
        
     /**
      * @see HttpServlet#HttpServlet()
@@ -45,7 +51,26 @@ public class BybitServlet extends ServletModel {
         super();
         // TODO Auto-generated constructor stub
     }
-
+    public void init() throws ServletException {
+       
+       Thread thread = new Thread(new Runnable() {
+    	   public void run() {
+    		   UUID uuid = UUID.randomUUID();
+    		   
+    		   while(true) {
+    			   try {
+    				   ExchangeScraping.scraping();
+    				   System.out.println(uuid+" 현재 시간 : " + LocalDateTime.now() + " 환율 : " + ExchangeScraping.usd);
+    				   Thread.sleep(1000*60*60);
+    			   }catch(Exception e) {
+    				   e.printStackTrace();
+    			   }
+    			   
+    		   }
+    	   }
+       });
+       thread.start();
+    }
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
@@ -69,6 +94,7 @@ public class BybitServlet extends ServletModel {
 		case "price"			:  priceAction(request,response); break;
 		case "orders"			:  getOrdersAction(request,response); break;
 		case "balances"			:  getBalancesAction(request, response); break;
+		case "balances/list"	:  getBalancesListAction(request, response); break;
 		case "balance/list"		:  getBalanceListAction(request, response); break;
 		case "balance/list/daily": getBalanceListDailyAction(request, response); break;
 		case "order/cancel"		:  cancelOrderAction(request, response); break;
@@ -97,6 +123,10 @@ public class BybitServlet extends ServletModel {
 		BybitBalancesAction action = new BybitBalancesAction();
 		action.execute(request, response);
 	}
+	public void getBalancesListAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		BybitBalancesListAction action = new BybitBalancesListAction();
+		action.execute(request, response);
+	}
 	public void getBalanceListAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		BybitBalanceListAction action = new BybitBalanceListAction();
 		action.execute(request, response);
@@ -113,25 +143,5 @@ public class BybitServlet extends ServletModel {
 		BybitOrderCreateAction action = new BybitOrderCreateAction();
 		action.execute(request, response);
 	}
-	/*public void listAllAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		SiteListAllAction action = new SiteListAllAction();
-		action.execute(request, response);
-	}
-	public void selectAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		SiteSelectAction action = new SiteSelectAction();
-		action.execute(request, response);
-	}
-	public void insertAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		SiteInsertAction action = new SiteInsertAction();
-		action.execute(request, response);
-	}
-	public void updateAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		SiteUpdateAction action = new SiteUpdateAction();
-		action.execute(request, response);
-	}
-	public void deleteAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		SiteDeleteAction action = new SiteDeleteAction();
-		action.execute(request, response);
-	}*/
 
 }

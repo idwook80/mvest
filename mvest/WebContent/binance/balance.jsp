@@ -51,10 +51,10 @@ var market_code ="";
 $(function(){
 	$("#input-form-today #to_date").val(today_date);
 /* 	$("#today_date").text(today_date); */
-	getBalances();
+	getBalancesList();
 	getTime();
 	setInterval(function() {
-		getBalances();
+		getBalancesList();
 	}, 1000*10);
 	setInterval(function() {
 		getTime();
@@ -84,10 +84,10 @@ function getTimeFormat(time){
 	return time < 10 ? "0" + time : ""+time;
 }
  
-function getBalances(){
+function getBalancesList(){
 	var param 		= $("#pageForm").serialize();
 	var REQ_TYPE 	= "get";
-	var REQ_URL  	= "../bybit/balances";
+	var REQ_URL  	= "../bybit/balances/list";
 	$.ajax({
 		type		: REQ_TYPE,
 		url			: REQ_URL,

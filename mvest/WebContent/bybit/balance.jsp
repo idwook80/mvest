@@ -89,9 +89,11 @@ function getTimeFormat(time){
 }
  
 function getBalances(){
-	//var param 		= $("#pageForm").serialize();
+	var symbol 		= $("#symbol_selector").val();
+	var param 		= $("#pageForm").serialize();
+	param += "&symbol=" + symbol;
 	var REQ_TYPE 	= "get";
-	var REQ_URL  	= "../bybit/balances";
+	var REQ_URL  	= "../bybit/balances/list";
 	$.ajax({
 		type		: REQ_TYPE,
 		url			: REQ_URL,
