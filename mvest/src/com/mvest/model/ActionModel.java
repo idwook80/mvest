@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -356,7 +355,6 @@ public abstract class ActionModel  {
 		JsonParser parser = new JsonParser();
 		for(int i=0; i<list.size(); i++){
 			String json = gson.toJson(list.get(i));
-			
 			jsonArray.add(parser.parse(json).getAsJsonObject()); 
 		}
 		if(resultObject == null) resultObject = new JsonObject();

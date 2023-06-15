@@ -1,8 +1,8 @@
 package com.mvest.db;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.mvest.model.DaoModel;
@@ -11,7 +11,7 @@ import com.mvest.model.DaoModel;
 public class QueryBuffer {
 	public final static int INT = 0;
 	public final static int STR = 1;
-	
+	ArrayList    columns = new ArrayList<String>();
 	StringBuffer intoBuffer = null;
 	StringBuffer valueBuffer = null;
 	StringBuffer setBuffer = null;
@@ -209,12 +209,13 @@ public class QueryBuffer {
 		}
 	}
 	public void setSelect(String key){
+		columns.add(key);
 		if(selectBuffer == null) selectBuffer = new StringBuffer();
 		if(selectBuffer.length() > 0) selectBuffer.append(",");
-		selectBuffer.append(key);
+		selectBuffer.append("`"+key+"`");
 	}
 	public void setOrder(String key,String sort){
-		setOrder(key + " "+sort);
+		setOrder(key+ " "+sort);
 	}
 	public void setOrder(String orderby){
 		if(orderby != null){
@@ -250,7 +251,7 @@ public class QueryBuffer {
 	
 	public void setSelectObject(HashMap row,Object obj) throws Exception{
 		Class clazz  	= obj.getClass();
-		String[] keys 	= selectBuffer.toString().split(",");
+		String[] keys 	= (String[])columns.toArray(new String[0]); //selectBuffer.toString().split(",");
 		
 		for(int i=0; i<keys.length; i++){
 			String key  = keys[i].trim();

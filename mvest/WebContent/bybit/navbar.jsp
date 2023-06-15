@@ -39,6 +39,7 @@
                         <a class="dropdown-item" href="../bybit/orders.jsp">Orders</a>
                         <a class="dropdown-item" href="../bybit/balance.jsp">Balance</a>
                         <a class="dropdown-item" href="../bybit/balances.jsp">Balances</a>
+                         <a class="dropdown-item" href="../bybit/alarms.jsp">Alarms</a>
                     </div>
                 </li>
                  <li class="nav-item dropdown">

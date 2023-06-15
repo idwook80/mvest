@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 
 import com.mvest.m.coin.action.BinanceTestAction;
+import com.mvest.m.coin.action.BybitAlarmsAction;
 import com.mvest.m.coin.action.BybitBalanceListAction;
 import com.mvest.m.coin.action.BybitBalanceListDailyAction;
 import com.mvest.m.coin.action.BybitBalancesAction;
@@ -36,7 +37,8 @@ import com.mvest.model.ServletModel;
 	"/bybit/balances",
 	"/bybit/balances/list",
 	"/bybit/balance/list",
-	"/bybit/balance/list/daily"
+	"/bybit/balance/list/daily",
+	"/bybit/alarms"
 })
 public class BybitServlet extends ServletModel {
 	private static final long serialVersionUID = 1L;
@@ -99,6 +101,8 @@ public class BybitServlet extends ServletModel {
 		case "balance/list/daily": getBalanceListDailyAction(request, response); break;
 		case "order/cancel"		:  cancelOrderAction(request, response); break;
 		case "order/create"		:  createOrderAction(request, response); break;
+		
+		case "alarms"			:  getAlarmsAction(request,response); break;
 		/*case "list/all"		:  listAllAction(request,response); break;
 		case "search"			:  selectAction(request, response); break;
 		case "add" 				:  insertAction(request, response); break;
@@ -115,10 +119,19 @@ public class BybitServlet extends ServletModel {
 		BinanceTestAction action = new BinanceTestAction();
 		action.execute(request, response);
 	}
+	/** ORDER **/
 	public void getOrdersAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		BybitOrdersAction action = new BybitOrdersAction();
 		action.execute(request, response);
 	}
+	/** ALARM **/
+	public void getAlarmsAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		BybitAlarmsAction action = new BybitAlarmsAction();
+		action.execute(request, response);
+	}
+	
+	/** BALANCES**/
+	
 	public void getBalancesAction(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		BybitBalancesAction action = new BybitBalancesAction();
 		action.execute(request, response);
